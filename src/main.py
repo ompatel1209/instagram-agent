@@ -7,7 +7,11 @@ Modes:
 """
 import argparse
 import datetime as dt
+import subprocess
 import sys
+import time
+
+import requests as _requests
 
 from . import content, instagram, render, state, token
 from .config import PREVIEW_DIR, ROOT, load_config, media_url
@@ -26,6 +30,29 @@ def build_media(cfg: dict, date: dt.date, out_dir) -> dict:
     render.render_feed(picked["quote"], cfg["palette"], cfg["handle"], feed_path)
     render.render_story(picked["tip"], cfg["palette"], cfg["handle"], story_path)
     return {"picked": picked, "feed": feed_path, "story": story_path}
+
+
+def push_media(cfg: dict, date_str: str) -> tuple[bool, bool]:
+    """Push rendered JPGs to the public `media` branch via the shell script,
+    then poll raw.githubusercontent.com until both files return HTTP 200 with
+    an image content-type (Meta's servers fetch image_url when the container
+    is created, so the files must be live before publishing starts)."""
+    subprocess.run(["bash", "scripts/push_media.sh", date_str], check=True)
+
+    def fetchable(url: str) -> bool:
+        for _ in range(12):  # 12 x 10s = ~2 min worst case
+            try:
+                r = _requests.get(url, timeout=20)
+                if r.status_code == 200 and "image" in r.headers.get(
+                        "content-type", ""):
+                    return True
+            except _requests.RequestException:
+                pass
+            time.sleep(10)
+        return False
+
+    return (fetchable(media_url(cfg, date_str, "feed")),
+            fetchable(media_url(cfg, date_str, "story")))
 
 
 def run() -> int:
@@ -85,6 +112,19 @@ def run() -> int:
     if args.prepare:
         log(f"prepare mode — media rendered to {out_dir}; not publishing.")
         return 0
+
+    # Push JPGs to the public `media` branch NOW, before creating containers —
+    # Meta's servers fetch image_url at container creation, so the files must
+    # already be downloadable when create_container() runs.
+    ok_feed, ok_story = push_media(cfg, date_str)
+    if not (ok_feed and ok_story):
+        log("ERROR: media not downloadable from raw.githubusercontent.com — "
+            "cannot create containers. Skipping publish.")
+        state.note_failure(st, date_str, "media_push",
+                           "media files not downloadable after push")
+        state.save(st)
+        return 1
+    log("media pushed and verified downloadable from media branch")
 
     # --- Token housekeeping (never blocks publishing) -------------------------
     new_token, secret_updated = token.refresh_and_store(

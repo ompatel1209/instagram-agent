@@ -108,6 +108,7 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
 
     src_url = uploads.raw_url(filename, cfg)
     src_path = out_dir / "queue-source.bin"
+    out_dir.mkdir(parents=True, exist_ok=True)  # _download writes here first
     if not _download(src_url, src_path):
         log(f"ERROR: could not download {filename} from media branch")
         state.note_failure(st, date_str, "upload_download",

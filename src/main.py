@@ -143,12 +143,12 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
         if not state.done(st, date_str, "publish_feed"):
             try:
                 cid = instagram.create_container(
-                    token_str(cfg), cfg["ig_user_id"], video_url=reel_url,
+                    cfg["access_token"], cfg["ig_user_id"], video_url=reel_url,
                     media_type="REELS", caption=caption,
                 )
-                instagram.wait_finished(token_str(cfg), cid,
+                instagram.wait_finished(cfg["access_token"], cid,
                                        max_wait_s=600, poll_s=30)
-                mid = instagram.publish(token_str(cfg), cfg["ig_user_id"], cid)
+                mid = instagram.publish(cfg["access_token"], cfg["ig_user_id"], cid)
                 state.record_media_id(st, date_str, "feed", mid)
                 state.mark(st, date_str, "publish_feed")
                 state.save(st)
@@ -162,12 +162,12 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
         if ok_story and not state.done(st, date_str, "publish_story"):
             try:
                 cid = instagram.create_container(
-                    token_str(cfg), cfg["ig_user_id"],
+                    cfg["access_token"], cfg["ig_user_id"],
                     image_url=media_url(cfg, date_str, "story"),
                     media_type="STORIES",
                 )
-                instagram.wait_finished(token_str(cfg), cid)
-                mid = instagram.publish(token_str(cfg), cfg["ig_user_id"], cid)
+                instagram.wait_finished(cfg["access_token"], cid)
+                mid = instagram.publish(cfg["access_token"], cfg["ig_user_id"], cid)
                 state.record_media_id(st, date_str, "story", mid)
                 state.mark(st, date_str, "publish_story")
                 state.save(st)
@@ -196,11 +196,11 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
         if not state.done(st, date_str, "publish_feed"):
             try:
                 cid = instagram.create_container(
-                    token_str(cfg), cfg["ig_user_id"],
+                    cfg["access_token"], cfg["ig_user_id"],
                     image_url=media_url(cfg, date_str, "feed"), caption=caption,
                 )
-                instagram.wait_finished(token_str(cfg), cid)
-                mid = instagram.publish(token_str(cfg), cfg["ig_user_id"], cid)
+                instagram.wait_finished(cfg["access_token"], cid)
+                mid = instagram.publish(cfg["access_token"], cfg["ig_user_id"], cid)
                 state.record_media_id(st, date_str, "feed", mid)
                 state.mark(st, date_str, "publish_feed")
                 state.save(st)
@@ -213,12 +213,12 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
         if not state.done(st, date_str, "publish_story"):
             try:
                 cid = instagram.create_container(
-                    token_str(cfg), cfg["ig_user_id"],
+                    cfg["access_token"], cfg["ig_user_id"],
                     image_url=media_url(cfg, date_str, "story"),
                     media_type="STORIES",
                 )
-                instagram.wait_finished(token_str(cfg), cid)
-                mid = instagram.publish(token_str(cfg), cfg["ig_user_id"], cid)
+                instagram.wait_finished(cfg["access_token"], cid)
+                mid = instagram.publish(cfg["access_token"], cfg["ig_user_id"], cid)
                 state.record_media_id(st, date_str, "story", mid)
                 state.mark(st, date_str, "publish_story")
                 state.save(st)

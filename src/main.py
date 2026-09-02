@@ -1,25 +1,36 @@
-"""Orchestrator: generate -> render -> upload (media branch) -> publish.
+"""Orchestrator: pick media -> render/pad -> upload (media branch) -> publish.
 
 Modes:
   --dry-run     render locally into preview/ only; no API calls at all
   --prepare     render + push media branch, but do not publish
   (default)     full automatic run: render, push, publish both, update state
+
+Two content sources:
+  - uploads queue: the user's own photos/videos on the `media` branch
+    (uploads/<file>, one per day; photos -> feed + Story, videos -> Reels +
+    Story). Used whenever the queue has an unposted file.
+  - quote/tip fallback: rendered gradient graphics, used when the queue is
+    empty so the daily schedule never goes silent.
 """
 import argparse
 import datetime as dt
+import pathlib
 import subprocess
 import sys
 import time
 
 import requests as _requests
 
-from . import content, instagram, render, state, token
+from . import captions as captions_mod
+from . import content, instagram, render, state, token, uploads
 from .config import PREVIEW_DIR, ROOT, load_config, media_url
 
 
 def log(msg: str) -> None:
     print(f"[ig-agent] {msg}", flush=True)
 
+
+# --- Quote/tip fallback (original flow) ------------------------------------
 
 def build_media(cfg: dict, date: dt.date, out_dir) -> dict:
     """Pick content + render both JPGs; returns paths and selection."""
@@ -39,13 +50,15 @@ def push_media(cfg: dict, date_str: str) -> tuple[bool, bool]:
     is created, so the files must be live before publishing starts)."""
     subprocess.run(["bash", "scripts/push_media.sh", date_str], check=True)
 
-    def fetchable(url: str) -> bool:
+    def fetchable(url: str, is_image: bool = True) -> bool:
         for _ in range(12):  # 12 x 10s = ~2 min worst case
             try:
                 r = _requests.get(url, timeout=20)
-                if r.status_code == 200 and "image" in r.headers.get(
-                        "content-type", ""):
-                    return True
+                if r.status_code == 200:
+                    kind = r.headers.get("content-type", "")
+                    if (is_image and "image" in kind) or (
+                            not is_image and "video" in kind):
+                        return True
             except _requests.RequestException:
                 pass
             time.sleep(10)
@@ -54,6 +67,175 @@ def push_media(cfg: dict, date_str: str) -> tuple[bool, bool]:
     return (fetchable(media_url(cfg, date_str, "feed")),
             fetchable(media_url(cfg, date_str, "story")))
 
+
+# --- Uploads-queue flow (user's own photos/videos) ---------------------------
+
+def _download(url: str, dest: pathlib.Path) -> bool:
+    """Download a queued upload to the runner for padding/cover extraction."""
+    try:
+        r = _requests.get(url, timeout=120)
+        if r.status_code == 200:
+            dest.write_bytes(r.content)
+            return True
+    except _requests.RequestException:
+        pass
+    return False
+
+
+def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
+                   out_dir: pathlib.Path) -> int:
+    """Publish one queued user file: photo -> feed + Story, video -> Reel +
+    Story (cover frame). Returns 0 on success, 1 on failure (retryable)."""
+    already = state.media_of_day(st, date_str)
+    if already:
+        filename = already
+        log(f"resuming upload day with {filename} (idempotent re-run)")
+    else:
+        filename = uploads.next_file(state.posted_files(st))
+    if not filename:
+        log("uploads queue empty")
+        return -1  # signal caller to fall back to quote/tip flow
+
+    state.set_media_of_day(st, date_str, filename)
+    state.save(st)
+
+    vibe = captions_mod.vibe_from_filename(filename)
+    is_video = captions_mod.is_video(filename)
+    bank = captions_mod.load_bank()
+    caption = captions_mod.caption_text(bank, vibe, date, cfg["hashtags"])
+    log(f"upload: {filename} (vibe: {vibe}, {'video' if is_video else 'photo'})")
+
+    src_url = uploads.raw_url(filename, cfg)
+    src_path = out_dir / "queue-source.bin"
+    if not _download(src_url, src_path):
+        log(f"ERROR: could not download {filename} from media branch")
+        state.note_failure(st, date_str, "upload_download",
+                           f"could not fetch {filename}")
+        state.save(st)
+        return 1
+
+    ok_feed = ok_story = False
+
+    if is_video:
+        # --- Video: Reel + Story cover frame --------------------------------
+        reel_url = src_url
+        story_cover = out_dir / f"{date_str}-story.jpg"
+        cover = render.extract_cover_frame(src_path, story_cover)
+        if cover:
+            subprocess.run(["bash", "scripts/push_file.sh",
+                            str(story_cover), f"{date_str}-story.jpg"],
+                          check=True)
+            def fetchable(url: str) -> bool:
+                for _ in range(12):
+                    try:
+                        r = _requests.get(url, timeout=20)
+                        if r.status_code == 200 and "image" in r.headers.get(
+                                "content-type", ""):
+                            return True
+                    except _requests.RequestException:
+                        pass
+                    time.sleep(10)
+                return False
+            ok_story = fetchable(media_url(cfg, date_str, "story"))
+
+        if not state.done(st, date_str, "publish_feed"):
+            try:
+                cid = instagram.create_container(
+                    token_str(cfg), cfg["ig_user_id"], video_url=reel_url,
+                    media_type="REELS", caption=caption,
+                )
+                instagram.wait_finished(token_str(cfg), cid,
+                                       max_wait_s=600, poll_s=30)
+                mid = instagram.publish(token_str(cfg), cfg["ig_user_id"], cid)
+                state.record_media_id(st, date_str, "feed", mid)
+                state.mark(st, date_str, "publish_feed")
+                state.save(st)
+                log(f"reel published: {mid}")
+                ok_feed = True
+            except instagram.InstagramError as e:
+                log(f"reel publish FAILED: {e}")
+                state.note_failure(st, date_str, "feed", e)
+                state.save(st)
+
+        if ok_story and not state.done(st, date_str, "publish_story"):
+            try:
+                cid = instagram.create_container(
+                    token_str(cfg), cfg["ig_user_id"],
+                    image_url=media_url(cfg, date_str, "story"),
+                    media_type="STORIES",
+                )
+                instagram.wait_finished(token_str(cfg), cid)
+                mid = instagram.publish(token_str(cfg), cfg["ig_user_id"], cid)
+                state.record_media_id(st, date_str, "story", mid)
+                state.mark(st, date_str, "publish_story")
+                state.save(st)
+                log(f"story published: {mid}")
+            except instagram.InstagramError as e:
+                log(f"story publish FAILED: {e}")
+                state.note_failure(st, date_str, "story", e)
+                state.save(st)
+
+    else:
+        # --- Photo: padded feed post + Story ---------------------------------
+        feed_path = out_dir / f"{date_str}-feed.jpg"
+        story_path = out_dir / f"{date_str}-story.jpg"
+        render.render_upload_feed(src_path, cfg["palette"], feed_path)
+        render.render_upload_story(src_path, cfg["palette"], story_path)
+
+        ok_feed, ok_story = push_media(cfg, date_str)
+        if not (ok_feed and ok_story):
+            log("ERROR: padded media not downloadable — cannot publish.")
+            state.note_failure(st, date_str, "media_push",
+                               "padded media not downloadable after push")
+            state.save(st)
+            return 1
+        log("media padded and verified downloadable from media branch")
+
+        if not state.done(st, date_str, "publish_feed"):
+            try:
+                cid = instagram.create_container(
+                    token_str(cfg), cfg["ig_user_id"],
+                    image_url=media_url(cfg, date_str, "feed"), caption=caption,
+                )
+                instagram.wait_finished(token_str(cfg), cid)
+                mid = instagram.publish(token_str(cfg), cfg["ig_user_id"], cid)
+                state.record_media_id(st, date_str, "feed", mid)
+                state.mark(st, date_str, "publish_feed")
+                state.save(st)
+                log(f"feed published: {mid}")
+            except instagram.InstagramError as e:
+                log(f"feed publish FAILED: {e}")
+                state.note_failure(st, date_str, "feed", e)
+                state.save(st)
+
+        if not state.done(st, date_str, "publish_story"):
+            try:
+                cid = instagram.create_container(
+                    token_str(cfg), cfg["ig_user_id"],
+                    image_url=media_url(cfg, date_str, "story"),
+                    media_type="STORIES",
+                )
+                instagram.wait_finished(token_str(cfg), cid)
+                mid = instagram.publish(token_str(cfg), cfg["ig_user_id"], cid)
+                state.record_media_id(st, date_str, "story", mid)
+                state.mark(st, date_str, "publish_story")
+                state.save(st)
+                log(f"story published: {mid}")
+            except instagram.InstagramError as e:
+                log(f"story publish FAILED: {e}")
+                state.note_failure(st, date_str, "story", e)
+                state.save(st)
+
+    # Only mark the queue file as consumed when the feed step succeeded —
+    # a half-finished day keeps its file so the re-run completes it.
+    if state.done(st, date_str, "publish_feed"):
+        state.mark_file_posted(st, filename)
+        state.save(st)
+
+    return 0 if state.both_published(st, date_str) else 1
+
+
+# --- Entry point ---------------------------------------------------------------
 
 def run() -> int:
     parser = argparse.ArgumentParser(prog="ig-agent")
@@ -69,10 +251,12 @@ def run() -> int:
     IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
     date = (dt.date.fromisoformat(args.date) if args.date
             else dt.datetime.now(IST).date())
+    date_str = date.isoformat()
 
     # --- Dry-run: render only ------------------------------------------------
     if args.dry_run:
-        result = build_media(cfg, date, PREVIEW_DIR)
+        out_dir = PREVIEW_DIR
+        result = build_media(cfg, date, out_dir)
         picked = result["picked"]
         log(f"dry-run ok — feed: {result['feed']}")
         log(f"dry-run ok — story: {result['story']}")
@@ -89,25 +273,51 @@ def run() -> int:
             "build public media URLs.")
         return 1
 
-    token_str = cfg["access_token"]
-    ig_user_id = cfg["ig_user_id"] or instagram.get_user_id(token_str)
+    ig_user_id = cfg["ig_user_id"] or instagram.get_user_id(cfg["access_token"])
+    cfg["ig_user_id"] = ig_user_id  # run_upload_day reads it from cfg
 
     st = state.load()
-    date_str = date.isoformat()
 
     # Idempotency: nothing left to do means the run is complete.
     if state.both_published(st, date_str):
         log(f"{date_str}: feed + story already published — nothing to do.")
         return 0
 
-    # --- Render + push media --------------------------------------------------
     out_dir = ROOT / "media_out"
+
+    # --- Token housekeeping (never blocks publishing) -------------------------
+    new_token, secret_updated = token.refresh_and_store(
+        cfg["access_token"], cfg["gh_pat"],
+        f"{cfg['repo_owner']}/{cfg['repo_name']}",
+    )
+    cfg["access_token"] = new_token
+
+    # --- Uploads queue first; quote/tip flow only when the queue is empty ---
+    try:
+        rc = run_upload_day(cfg, date, date_str, st, out_dir)
+    except Exception as e:  # never let a queue bug kill the daily post
+        log(f"upload flow crashed ({e}) — falling back to quote/tip")
+        rc = 1
+    if rc == 0:
+        log(f"{date_str}: complete (uploads queue: feed + story published).")
+        _note_token(cfg, st, date_str)
+        return 0
+    if rc == -1:
+        log("falling back to today's quote/tip graphics")
+        st = state.load()
+        if state.both_published(st, date_str):
+            log(f"{date_str}: already complete after fallback check.")
+            return 0
+    else:
+        # Partial failure: the safety re-run retries this same file.
+        _note_token(cfg, st, date_str)
+        log(f"{date_str}: upload day incomplete — safety re-run will retry.")
+        return 1
+
+    # --- Quote/tip fallback (original render flow) -----------------------------
     result = build_media(cfg, date, out_dir)
     picked = result["picked"]
     log(f"content: quote#N tip '{picked['tip']['title']}'")
-
-    feed_url = media_url(cfg, date_str, "feed")
-    story_url = media_url(cfg, date_str, "story")
 
     if args.prepare:
         log(f"prepare mode — media rendered to {out_dir}; not publishing.")
@@ -126,22 +336,31 @@ def run() -> int:
         return 1
     log("media pushed and verified downloadable from media branch")
 
-    # --- Token housekeeping (never blocks publishing) -------------------------
-    new_token, secret_updated = token.refresh_and_store(
-        token_str, cfg["gh_pat"],
-        f"{cfg['repo_owner']}/{cfg['repo_name']}",
-    )
-    token_str = new_token
+    _publish_image_pair(cfg, st, date_str, picked)
 
-    # --- Publish feed ----------------------------------------------------------
+    _note_token(cfg, st, date_str)
+
+    # --- Exit code reflects completeness ---------------------------------------
+    st = state.load()
+    if state.both_published(st, date_str):
+        log(f"{date_str}: complete (feed + story published).")
+        return 0
+    log(f"{date_str}: incomplete — safety re-run will retry missing steps.")
+    return 1
+
+
+def _publish_image_pair(cfg: dict, st: dict, date_str: str,
+                        picked: dict) -> None:
+    """Publish feed + story containers from the rendered quote/tip JPGs."""
     if not state.done(st, date_str, "publish_feed"):
         try:
             cid = instagram.create_container(
-                token_str, ig_user_id, feed_url,
+                cfg["access_token"], cfg["ig_user_id"],
+                media_url(cfg, date_str, "feed"),
                 caption=content.caption_for(picked["quote"], cfg["hashtags"]),
             )
-            instagram.wait_finished(token_str, cid)
-            mid = instagram.publish(token_str, ig_user_id, cid)
+            instagram.wait_finished(cfg["access_token"], cid)
+            mid = instagram.publish(cfg["access_token"], cfg["ig_user_id"], cid)
             state.record_media_id(st, date_str, "feed", mid)
             state.mark(st, date_str, "publish_feed")
             state.save(st)
@@ -151,14 +370,14 @@ def run() -> int:
             state.note_failure(st, date_str, "feed", e)
             state.save(st)
 
-    # --- Publish story ----------------------------------------------------------
     if not state.done(st, date_str, "publish_story"):
         try:
             cid = instagram.create_container(
-                token_str, ig_user_id, story_url, media_type="STORIES",
+                cfg["access_token"], cfg["ig_user_id"],
+                media_url(cfg, date_str, "story"), media_type="STORIES",
             )
-            instagram.wait_finished(token_str, cid)
-            mid = instagram.publish(token_str, ig_user_id, cid)
+            instagram.wait_finished(cfg["access_token"], cid)
+            mid = instagram.publish(cfg["access_token"], cfg["ig_user_id"], cid)
             state.record_media_id(st, date_str, "story", mid)
             state.mark(st, date_str, "publish_story")
             state.save(st)
@@ -168,9 +387,11 @@ def run() -> int:
             state.note_failure(st, date_str, "story", e)
             state.save(st)
 
-    # --- Token expiry bookkeeping ----------------------------------------------
+
+def _note_token(cfg: dict, st: dict, date_str: str) -> None:
+    """Token expiry bookkeeping (best-effort, never fatal)."""
     try:
-        d_left, iso = token.days_left(token_str)
+        d_left, iso = token.days_left(cfg["access_token"])
         if d_left is not None:
             state.note_token_expiry(st, iso, d_left)
             if d_left < 7:
@@ -179,14 +400,6 @@ def run() -> int:
             state.save(st)
     except Exception:
         pass
-
-    # --- Exit code reflects completeness ---------------------------------------
-    st = state.load()
-    if state.both_published(st, date_str):
-        log(f"{date_str}: complete (feed + story published).")
-        return 0
-    log(f"{date_str}: incomplete — safety re-run will retry missing steps.")
-    return 1
 
 
 if __name__ == "__main__":

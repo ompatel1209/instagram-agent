@@ -5,7 +5,7 @@ image posts) at 1080x1350 (feed, 4:5) and 1080x1920 (story, 9:16).
 """
 import pathlib
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from .config import FONTS_DIR
 
@@ -127,7 +127,56 @@ def render_feed(quote: dict, palette: list[list[int]], handle: str,
     return out_path
 
 
-# --- Story -----------------------------------------------------------------
+# --- Uploaded user photos ---------------------------------------------------
+
+def pad_to_ratio(src_path: pathlib.Path, size: tuple[int, int],
+                 palette: list[list[int]], out_path: pathlib.Path) -> pathlib.Path:
+    """Letterbox a user photo onto a gradient canvas of the target ratio.
+
+    The photo is scaled to fit fully inside `size` (no cropping), then
+    centered on a vertical gradient built from the same palette — so a
+    landscape photo posted to the 4:5 feed or 9:16 story keeps its framing
+    and still fills the frame edge to edge.
+    """
+    bg = gradient(size, [tuple(c) for c in palette])
+    photo = Image.open(src_path)
+    photo = ImageOps.exif_transpose(photo)  # respect phone rotation
+    photo.thumbnail(size, Image.LANCZOS)
+    x = (size[0] - photo.width) // 2
+    y = (size[1] - photo.height) // 2
+    bg.paste(photo, (x, y))
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    bg.convert("RGB").save(out_path, "JPEG", quality=92)
+    return out_path
+
+
+def render_upload_feed(src_path: pathlib.Path, palette: list[list[int]],
+                       out_path: pathlib.Path) -> pathlib.Path:
+    """User photo padded to the 4:5 feed ratio."""
+    return pad_to_ratio(src_path, FEED_SIZE, palette, out_path)
+
+
+def render_upload_story(src_path: pathlib.Path, palette: list[list[int]],
+                        out_path: pathlib.Path) -> pathlib.Path:
+    """User photo padded to the 9:16 story ratio."""
+    return pad_to_ratio(src_path, STORY_SIZE, palette, out_path)
+
+
+def extract_cover_frame(video_path: pathlib.Path, out_path: pathlib.Path,
+                        at_seconds: float = 1.0) -> pathlib.Path | None:
+    """Grab a JPEG frame from a video for the Reel's Story cover.
+
+    Uses the system ffmpeg (preinstalled on GitHub Actions runners); returns
+    None if extraction fails so the caller can skip the Story gracefully.
+    """
+    import subprocess
+    cmd = ["ffmpeg", "-y", "-ss", str(at_seconds), "-i", str(video_path),
+           "-frames:v", "1", "-q:v", "2", str(out_path)]
+    try:
+        subprocess.run(cmd, check=True, capture_output=True, timeout=60)
+        return out_path if out_path.exists() else None
+    except Exception:
+        return None
 
 def render_story(tip: dict, palette: list[list[int]], handle: str,
                  out_path: pathlib.Path) -> pathlib.Path:

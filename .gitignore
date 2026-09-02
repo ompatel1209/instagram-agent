@@ -7,6 +7,9 @@ __pycache__/
 preview/
 media_out/
 
+# User's local uploads staging folder (files live on the media branch only)
+uploads/
+
 # Never commit secrets
 .env
 

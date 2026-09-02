@@ -58,3 +58,26 @@ def note_failure(state: dict, date_str: str, where: str, message: str) -> None:
 
 def note_token_expiry(state: dict, expires_iso: str, days_left: int) -> None:
     state["token"] = {"expires": expires_iso, "days_left": days_left}
+
+
+# --- Uploads queue bookkeeping ------------------------------------------------
+
+def posted_files(state: dict) -> list[str]:
+    """Upload files already published (top-level, date-independent)."""
+    return state.get("posted_files", [])
+
+
+def mark_file_posted(state: dict, filename: str) -> None:
+    """Record an uploaded file as published so the queue never repeats it."""
+    files = state.setdefault("posted_files", [])
+    if filename not in files:
+        files.append(filename)
+
+
+def media_of_day(state: dict, date_str: str) -> str | None:
+    """The uploads-queue file that was (or will be) posted on a date."""
+    return state.get("days", {}).get(date_str, {}).get("media_of_day")
+
+
+def set_media_of_day(state: dict, date_str: str, filename: str) -> None:
+    day(state, date_str)["media_of_day"] = filename

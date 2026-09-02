@@ -45,11 +45,20 @@ def get_user_id(token: str) -> str:
     return str(uid)
 
 
-def create_container(token: str, ig_user_id: str, image_url: str,
+def create_container(token: str, ig_user_id: str, image_url: str | None = None,
+                     video_url: str | None = None,
                      media_type: str | None = None,
                      caption: str | None = None) -> str:
-    """Step 1: create a media container. media_type STORIES for stories."""
-    params = {"image_url": image_url, "access_token": token}
+    """Step 1: create a media container.
+
+    media_type STORIES for stories, REELS for reels (video_url then)."""
+    if not image_url and not video_url:
+        raise InstagramError("create_container needs image_url or video_url")
+    params: dict = {"access_token": token}
+    if video_url:
+        params["video_url"] = video_url
+    else:
+        params["image_url"] = image_url
     if media_type:
         params["media_type"] = media_type
     if caption:
@@ -64,7 +73,11 @@ def create_container(token: str, ig_user_id: str, image_url: str,
 
 def wait_finished(token: str, container_id: str,
                  max_wait_s: int = 300, poll_s: int = 30) -> str:
-    """Step 2: poll status_code until FINISHED (or raise)."""
+    """Step 2: poll status_code until FINISHED (or raise).
+
+    Video containers (Reels/long Story video) can take several minutes to
+    transcode, so callers pass a longer max_wait_s for video media.
+    """
     deadline = time.time() + max_wait_s
     last = ""
     while time.time() < deadline:
@@ -97,6 +110,22 @@ def publish(token: str, ig_user_id: str, container_id: str) -> str:
     if not mid:
         raise InstagramError(f"publish returned no media id: {data}")
     return str(mid)
+
+
+def video_duration_seconds(url: str, local_path=None) -> float | None:
+    """ffprobe a video's duration via the system ffmpeg (preinstalled on
+    ubuntu runners). Returns None if probing fails (caller decides)."""
+    import subprocess as _sp
+    target = ["-i", str(local_path)] if local_path else ["-i", url]
+    try:
+        out = _sp.run(
+            ["ffprobe", "-v", "error", *target, "-show_entries",
+             "format=duration", "-of", "default=noprint_wrappers=1:nokey=1"],
+            capture_output=True, text=True, timeout=60, check=True,
+        ).stdout.strip()
+        return float(out)
+    except Exception:
+        return None
 
 
 def publishing_limit(token: str, ig_user_id: str) -> dict:

@@ -14,6 +14,7 @@ Two content sources:
 """
 import argparse
 import datetime as dt
+import os
 import pathlib
 import subprocess
 import sys
@@ -249,7 +250,8 @@ def run() -> int:
 
     cfg = load_config()
     IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
-    date = (dt.date.fromisoformat(args.date) if args.date
+    date = (dt.date.fromisoformat(args.date or os.environ.get("POST_DATE_OVERRIDE")
+                                  or "") if (args.date or os.environ.get("POST_DATE_OVERRIDE"))
             else dt.datetime.now(IST).date())
     date_str = date.isoformat()
 

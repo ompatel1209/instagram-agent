@@ -5,6 +5,12 @@ on:
     - cron: "33 3 * * *"   # 9:03 AM IST daily (03:33 UTC)
     - cron: "34 9 * * *"   # 3:04 PM IST safety re-run (09:34 UTC)
   workflow_dispatch:       # manual "Run workflow" button for testing
+    inputs:
+      date:
+        description: "Post date override (YYYY-MM-DD) — publish for that day"
+        required: false
+        default: ""
+        type: string
 
 concurrency:
   group: instagram-daily
@@ -43,6 +49,7 @@ jobs:
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           MEDIA_PUSH_TOKEN: ${{ secrets.GH_PAT != '' && secrets.GH_PAT || github.token }}
+          POST_DATE_OVERRIDE: ${{ github.event.inputs.date }}
         run: python -m src.main
 
 

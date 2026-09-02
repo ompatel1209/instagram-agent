@@ -1,3 +1,16 @@
 {
-  "days": {}
+  "days": {
+    "2026-09-03": {
+      "failures": [
+        {
+          "where": "feed",
+          "message": "HTTP 400: Only photo or video can be accepted as media type."
+        },
+        {
+          "where": "story",
+          "message": "HTTP 400: Only photo or video can be accepted as media type."
+        }
+      ]
+    }
+  }
 }

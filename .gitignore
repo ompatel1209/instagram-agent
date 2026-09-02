@@ -1,0 +1,14 @@
+# Local Python
+__pycache__/
+*.pyc
+.venv/
+
+# Local previews and build output
+preview/
+media_out/
+
+# Never commit secrets
+.env
+
+# OS
+.DS_Store

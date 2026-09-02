@@ -10,7 +10,13 @@
           "where": "story",
           "message": "HTTP 400: Only photo or video can be accepted as media type."
         }
-      ]
+      ],
+      "published_media": {
+        "feed": "18118301806916838",
+        "story": "18099340457567111"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   }
 }

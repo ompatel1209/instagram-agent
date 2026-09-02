@@ -19,7 +19,16 @@
       "publish_story": true
     },
     "2026-09-04": {
-      "media_of_day": "175f7ed81657ee631f0459b28163a9e9.jpg"
+      "media_of_day": "175f7ed81657ee631f0459b28163a9e9.jpg",
+      "published_media": {
+        "feed": "17874176307567652",
+        "story": "18125452819781495"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
-  }
+  },
+  "posted_files": [
+    "175f7ed81657ee631f0459b28163a9e9.jpg"
+  ]
 }

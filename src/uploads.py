@@ -8,6 +8,7 @@ unposted file. Photos publish as feed post + Story; videos as Reels + Story.
 """
 import json
 import os
+import pathlib
 
 
 def _repo_slug() -> str:
@@ -32,7 +33,9 @@ def list_queue() -> list[str]:
     """All queued upload filenames on the media branch (sorted, no tokens).
 
     Uses the GitHub contents API so no token-bearing URL ever hits a log;
-    returns [] on any failure (bad branch, empty queue, no network).
+    returns [] on any failure (bad branch, empty queue, no network). Only
+    recognized photo/video extensions are listed, so stray non-media files
+    on the branch can never block the queue head.
     """
     import urllib.request
     url = (f"https://api.github.com/repos/{_repo_slug()}/contents/"
@@ -47,8 +50,11 @@ def list_queue() -> list[str]:
             entries = json.load(r)
     except Exception:
         return []
+    media_exts = {".jpg", ".jpeg", ".png", ".heic", ".webp",
+                  ".mp4", ".mov", ".m4v"}
     return sorted(e["name"] for e in entries
-                  if isinstance(e, dict) and e.get("type") == "file")
+                  if isinstance(e, dict) and e.get("type") == "file"
+                  and pathlib.Path(e["name"]).suffix.lower() in media_exts)
 
 
 def next_file(posted_files: list[str]) -> str | None:

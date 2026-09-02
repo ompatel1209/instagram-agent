@@ -33,8 +33,9 @@ tell the agent (me) — I queue them to GitHub. Rules:
   on your gradient so any orientation fills the frame.
 - **Videos**: mp4 / mov / m4v, vertical 9:16, 3s–15min — posted as a
   **Reel** (+ Story from the video's cover frame).
-- Files live on the private-to-you `media` branch; the local `uploads/`
-  folder is just your staging area (gitignored on main).
+- Files live on the repo's `media` branch (fetchable by Instagram's
+  servers, same as the daily graphics); the local `uploads/` folder is
+  just your staging area (gitignored on main).
 
 ## One-time setup (do this once; ~15 minutes)
 
@@ -115,4 +116,4 @@ post succeeded but the story failed, only the story is retried.
   (`attitude7.jpg` instead of `IMG_1234.jpg`) — the vibe word before the
   number picks the caption set (see `content/captions.json`).
 - **Want to repost an old upload?** Remove its filename from
-  `posted_files` in `state.json` (kept on the `media` branch) and re-queue.
+  `posted_files` in `state.json` (committed to `main`) and re-queue.

@@ -36,9 +36,13 @@ mkdir -p uploads
 copied=0
 for f in "${files[@]}"; do
   name="$(basename "$f")"
-  # Skip macOS junk and anything already queued.
+  # Skip macOS junk, this folder's own README, and non-media files.
   case "$name" in
-    .DS_Store|._*) continue ;;
+    .DS_Store|._*|README*) continue ;;
+  esac
+  case "${name##*.}" in
+    jpg|jpeg|png|heic|webp|mp4|mov|m4v) ;;  # recognized media
+    *) echo "uploads: skipping $name (not a photo/video)"; continue ;;
   esac
   if [ -f "uploads/$name" ]; then continue; fi
   cp "$f" "uploads/$name"

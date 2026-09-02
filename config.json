@@ -1,11 +1,30 @@
 {
-  "handle": "@ompatel1209",
+  "handle": "@heyyyyanshiiikaaaaa",
   "repo_owner": "ompatel1209",
   "repo_name": "instagram-agent",
   "palette": [
-    [124, 58, 237],
-    [219, 39, 119],
-    [244, 114, 60]
+    [
+      124,
+      58,
+      237
+    ],
+    [
+      219,
+      39,
+      119
+    ],
+    [
+      244,
+      114,
+      60
+    ]
   ],
-  "hashtags": ["motivation", "dailyquotes", "inspiration", "growthmindset", "selfimprovement", "dailymotivation"]
+  "hashtags": [
+    "motivation",
+    "dailyquotes",
+    "inspiration",
+    "growthmindset",
+    "selfimprovement",
+    "dailymotivation"
+  ]
 }

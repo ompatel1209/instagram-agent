@@ -1,20 +1,40 @@
 # Instagram Automation Agent
 
 Fully automatic daily Instagram agent: every day at **9:00 AM IST** it
-generates a fresh quote post + tip story, renders colorful gradient
-graphics, and publishes both to your Instagram — even while your Mac is
-off. Runs on GitHub Actions (free) using the **official Instagram Graph
-API** (no bots, no ban risk).
+posts **your own photos and videos** (from your uploads queue) with girly
+captions + hashtags — and falls back to a fresh quote post + tip story when
+your queue is empty. It runs on GitHub Actions (free) using the
+**official Instagram Graph API** (no bots, no ban risk), even while your Mac
+is off.
 
 ## What it does
 
 ```
-9:00 AM IST  →  pick today's quote + tip (never repeats for ~6 months)
-             →  render 1080x1350 post + 1080x1920 story (purple→pink→orange gradient)
-             →  publish via official Instagram API
+9:00 AM IST  →  your uploads queue: next unposted photo/video
+             →  photo: padded to 4:5 feed + 9:16 Story on a gradient frame
+                video: published as a Reel + Story from its cover frame
+             →  girly caption + hashtags picked by the file's vibe
+9:00 AM IST  →  (queue empty) quote post + tip story, same as before
 3:00 PM IST  →  safety re-run: if anything failed in the morning, it retries
                 only the missing steps — never double-posts
 ```
+
+## Your photos & videos (the uploads queue)
+
+Drop your files into the `uploads/` folder in this project on your Mac, then
+tell the agent (me) — I queue them to GitHub. Rules:
+
+- **Name files by vibe** so the caption matches: `selfie1.jpg`,
+  `attitude2.mp4`, `cute3.jpg`, `ootd4.jpg`, `travel5.jpg`, `selflove6.jpg`.
+  Unknown names (e.g. `IMG_1234.jpg`) still post — with a general caption.
+- **One file posts per day**, in name order, never repeating a file. Add
+  10 files → the next 10 days are covered.
+- **Photos**: jpg / jpeg / png / heic / webp — posted uncropped, letterboxed
+  on your gradient so any orientation fills the frame.
+- **Videos**: mp4 / mov / m4v, vertical 9:16, 3s–15min — posted as a
+  **Reel** (+ Story from the video's cover frame).
+- Files live on the private-to-you `media` branch; the local `uploads/`
+  folder is just your staging area (gitignored on main).
 
 ## One-time setup (do this once; ~15 minutes)
 
@@ -91,3 +111,8 @@ post succeeded but the story failed, only the story is retried.
   `IG_ACCESS_TOKEN` secret.
 - **Want a different look?** Edit `palette` colors in `config.json`
   (RGB arrays), or ask me to restyle the templates.
+- **Caption not matching the photo?** Rename the file by its vibe
+  (`attitude7.jpg` instead of `IMG_1234.jpg`) — the vibe word before the
+  number picks the caption set (see `content/captions.json`).
+- **Want to repost an old upload?** Remove its filename from
+  `posted_files` in `state.json` (kept on the `media` branch) and re-queue.

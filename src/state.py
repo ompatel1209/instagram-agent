@@ -156,3 +156,29 @@ def used_stock_ids(state: dict) -> list[int]:
         if isinstance(stock, dict) and isinstance(stock.get("id"), int):
             ids.append(stock["id"])
     return ids
+
+
+# --- Reel (Pexels video) bookkeeping --------------------------------------------
+
+
+def reel_of_day(state: dict, date_str: str) -> dict | None:
+    """The stock video that was (or will be) posted as the day's Reel."""
+    return state.get("days", {}).get(date_str, {}).get("reel_of_day")
+
+
+def set_reel_of_day(state: dict, date_str: str, video: dict) -> None:
+    """Pin the day's stock video (idempotent re-runs pick the same video)."""
+    day(state, date_str)["reel_of_day"] = {
+        "id": video["id"], "vibe": video["vibe"],
+        "photographer": video["photographer"],
+    }
+
+
+def used_reel_ids(state: dict) -> list[int]:
+    """All stock-video ids ever posted, so no reel video repeats."""
+    ids = []
+    for d in state.get("days", {}).values():
+        reel = d.get("reel_of_day")
+        if isinstance(reel, dict) and isinstance(reel.get("id"), int):
+            ids.append(reel["id"])
+    return ids

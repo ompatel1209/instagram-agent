@@ -35,3 +35,11 @@ def media_url(cfg: dict, date_str: str, kind: str) -> str:
         f"https://raw.githubusercontent.com/{cfg['repo_owner']}/{cfg['repo_name']}"
         f"/media/{date_str}-{kind}.jpg"
     )
+
+
+def reel_url(cfg: dict, date_str: str) -> str:
+    """Public raw.githubusercontent URL for the day's Reel video file."""
+    return (
+        f"https://raw.githubusercontent.com/{cfg['repo_owner']}/{cfg['repo_name']}"
+        f"/media/{date_str}-reel.mp4"
+    )

@@ -5,12 +5,18 @@ Modes:
   --prepare     render + push media branch, but do not publish
   (default)     full automatic run: render, push, publish both, update state
 
-Two content sources:
+Content sources for feed + Story, in priority order:
   - uploads queue: the user's own photos/videos on the `media` branch
     (uploads/<file>, one per day; photos -> feed + Story, videos -> Reels +
     Story). Used whenever the queue has an unposted file.
-  - quote/tip fallback: rendered gradient graphics, used when the queue is
-    empty so the daily schedule never goes silent.
+  - Pexels stock photos (licensed API, Indian-aesthetic queries).
+  - quote/tip fallback: rendered gradient graphics — never lets a day go
+    silent.
+
+Every day also fills a Reel slot: the queued file itself when it's a video,
+otherwise a licensed Pexels stock video with Pexels music pre-embedded (the
+Graph API can't attach IG-library music, so embedding keeps every Reel
+copyright-safe and musical). A missing reel never blocks feed/story.
 """
 import argparse
 import datetime as dt
@@ -23,7 +29,7 @@ import time
 import requests as _requests
 
 from . import alerts, captions as captions_mod
-from . import content, instagram, pexels, render, state, token, uploads
+from . import content, instagram, pexels, reel, render, state, token, uploads
 from .config import PREVIEW_DIR, ROOT, load_config, media_url
 
 
@@ -165,6 +171,10 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
                 mid = instagram.publish(cfg["access_token"], cfg["ig_user_id"], cid)
                 state.record_media_id(st, date_str, "feed", mid)
                 state.mark(st, date_str, "publish_feed")
+                # The queued video IS the day's Reel — fill the reel slot too
+                # so the stock-video gap-fill below never double-posts.
+                state.record_media_id(st, date_str, "reel", mid)
+                state.mark(st, date_str, "publish_reel")
                 state.save(st)
                 log(f"reel published: {mid}")
                 ok_feed = True
@@ -397,15 +407,21 @@ def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
             state.note_token_refresh(st, date_str, tok_out["reason"])
         state.save(st)
 
-    # Idempotency: nothing left to do means the run is complete. Expiry
-    # bookkeeping still runs — this is the path the backup/safety runs take,
-    # and the token alert needs a fresh days_left in state.json.
-    if state.both_published(st, date_str):
-        log(f"{date_str}: feed + story already published — nothing to do.")
-        _note_token(cfg, st, date_str)
-        return 0
-
+    # Idempotency: feed + story done means only the Reel can be missing. The
+    # safety re-run lands here (and on partial days below) — gap-fill just
+    # the reel instead of re-running the whole content pipeline. Expiry
+    # bookkeeping still runs — the token alert needs a fresh days_left.
     out_dir = ROOT / "media_out"
+
+    if state.both_published(st, date_str):
+        if state.done(st, date_str, "publish_reel"):
+            log(f"{date_str}: feed + story + reel already published — done.")
+            _note_token(cfg, st, date_str)
+            return 0
+        log(f"{date_str}: feed + story published, reel missing — gap-filling.")
+        _reel_gapfill(cfg, date, date_str, st, out_dir)
+        _note_token(cfg, st, date_str)
+        return _day_complete_exit(st, date_str, "reel gap-fill")
 
     # --- Content tiers: uploads queue -> stock photos -> quote/tip --------------
     try:
@@ -414,9 +430,12 @@ def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
         log(f"upload flow crashed ({e}) — falling back to stock/quotes")
         rc = 1
     if rc == 0:
-        log(f"{date_str}: complete (uploads queue: feed + story published).")
+        # The queued file filled feed+story (and the reel slot when video):
+        # on photo days the reel still needs the stock-video gap-fill.
+        _reel_gapfill(cfg, date, date_str, st, out_dir)
+        log(f"{date_str}: uploads tier done.")
         _note_token(cfg, st, date_str)
-        return 0
+        return _day_complete_exit(st, date_str, "uploads")
     if rc == -1:
         log("uploads queue empty — trying the stock-photo tier")
         try:
@@ -425,8 +444,9 @@ def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
             log(f"stock flow crashed ({e}) — falling back to quotes")
             stock_rc = -1
         if stock_rc == 0:
+            _reel_gapfill(cfg, date, date_str, st, out_dir)
             _note_token(cfg, st, date_str)
-            return 0
+            return _day_complete_exit(st, date_str, "stock")
         if stock_rc == 1:
             _note_token(cfg, st, date_str)
             log(f"{date_str}: stock day incomplete — safety re-run will retry.")
@@ -434,8 +454,13 @@ def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
         log("falling back to today's quote/tip graphics")
         st = state.load()
         if state.both_published(st, date_str):
-            log(f"{date_str}: already complete after fallback check.")
-            return 0
+            # A concurrent run completed feed+story while we were deciding —
+            # only the reel can still be missing.
+            if state.done(st, date_str, "publish_reel"):
+                log(f"{date_str}: already complete after fallback check.")
+                return 0
+            _reel_gapfill(cfg, date, date_str, st, out_dir)
+            return _day_complete_exit(st, date_str, "fallback check")
     else:
         # Partial failure: the safety re-run retries this same file.
         _note_token(cfg, st, date_str)
@@ -466,14 +491,41 @@ def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
 
     _publish_image_pair(cfg, st, date_str, picked)
 
+    _reel_gapfill(cfg, date, date_str, st, out_dir)
+
     _note_token(cfg, st, date_str)
 
     # --- Exit code reflects completeness ---------------------------------------
-    st = state.load()
-    if state.both_published(st, date_str):
-        log(f"{date_str}: complete (feed + story published).")
+    return _day_complete_exit(st, date_str, "quote fallback")
+
+
+def _reel_gapfill(cfg: dict, date: dt.date, date_str: str, st: dict,
+                  out_dir: pathlib.Path) -> bool:
+    """Fill the day's reel slot when the queued file wasn't a video.
+
+    Never fatal: a crash, a missing API key, or any stock-video failure just
+    records a "reel" failure note and returns False — feed and story are
+    already safe, and the non-zero day exit makes the safety re-run retry.
+    """
+    if state.done(st, date_str, "publish_reel"):
+        return True
+    try:
+        return reel.run(cfg, date, date_str, st, out_dir)
+    except Exception as e:  # reel tier must never kill feed/story success
+        log(f"reel gap-fill failed ({e})")
+        state.note_failure(st, date_str, "reel", e)
+        state.save(st)
+        return False
+
+
+def _day_complete_exit(st: dict, date_str: str, label: str) -> int:
+    """0 only when feed, story AND reel are all published — a missing reel
+    exits 1 so the safety re-run retries (alerts only watch feed/story, so
+    this never opens a spam issue)."""
+    if state.both_published(st, date_str) and state.done(st, date_str, "publish_reel"):
+        log(f"{date_str}: complete ({label}: feed + story + reel published).")
         return 0
-    log(f"{date_str}: incomplete — safety re-run will retry missing steps.")
+    log(f"{date_str}: reel missing — safety re-run will retry it.")
     return 1
 
 

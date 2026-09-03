@@ -139,6 +139,20 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
                     time.sleep(10)
                 return False
             ok_story = fetchable(media_url(cfg, date_str, "story"))
+            if not ok_story:
+                log("ERROR: story cover pushed but never fetchable — "
+                    "Story skipped")
+                state.note_failure(st, date_str, "story_cover",
+                                   "cover JPEG not downloadable after push")
+                state.save(st)
+        else:
+            # extract_cover_frame swallows the ffmpeg error — without this
+            # branch the Story was skipped with zero log lines.
+            log("ERROR: could not extract a story cover frame (ffmpeg failed "
+                "or missing) — Story skipped")
+            state.note_failure(st, date_str, "story_cover",
+                               "cover frame extraction failed (ffmpeg?)")
+            state.save(st)
 
         if not state.done(st, date_str, "publish_feed"):
             try:

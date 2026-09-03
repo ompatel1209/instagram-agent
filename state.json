@@ -26,6 +26,14 @@
       },
       "publish_feed": true,
       "publish_story": true
+    },
+    "2026-09-05": {
+      "media_of_day": "0travel.mp4",
+      "publish_feed": true,
+      "published_media": {
+        "feed": "18104882834264326"
+      },
+      "token_refreshed": true
     }
   },
   "posted_files": [

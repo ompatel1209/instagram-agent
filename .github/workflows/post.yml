@@ -3,6 +3,9 @@ name: Daily Instagram post + story
 on:
   schedule:
     - cron: "33 3 * * *"   # 9:03 AM IST daily (03:33 UTC)
+    - cron: "48 3 * * *"   # 9:18 AM IST backup (03:48 UTC) — GitHub
+                           # sometimes delays/drops a scheduled fire; the
+                           # run is idempotent so a second attempt is free
     - cron: "34 9 * * *"   # 3:04 PM IST safety re-run (09:34 UTC)
   workflow_dispatch:       # manual "Run workflow" button for testing
     inputs:

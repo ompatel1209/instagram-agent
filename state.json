@@ -38,10 +38,21 @@
       "token_refreshed": true,
       "publish_story": true,
       "publish_reel": true
+    },
+    "2026-09-06": {
+      "token_refreshed": true,
+      "media_of_day": "218a6ed45b70d6455c297e7663fe66a8.jpg",
+      "published_media": {
+        "feed": "17965984944008226",
+        "story": "18001752659886257"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
     "175f7ed81657ee631f0459b28163a9e9.jpg",
-    "0travel.mp4"
+    "0travel.mp4",
+    "218a6ed45b70d6455c297e7663fe66a8.jpg"
   ]
 }

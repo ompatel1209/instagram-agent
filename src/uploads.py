@@ -29,13 +29,15 @@ def _token() -> str:
     return tok
 
 
-def list_queue() -> list[str]:
-    """All queued upload filenames on the media branch (sorted, no tokens).
+def list_queue_checked() -> list[str] | None:
+    """All queued upload filenames on the media branch, or None when the
+    lookup itself failed (bad branch, no network, bad token).
 
-    Uses the GitHub contents API so no token-bearing URL ever hits a log;
-    returns [] on any failure (bad branch, empty queue, no network). Only
-    recognized photo/video extensions are listed, so stray non-media files
-    on the branch can never block the queue head.
+    Uses the GitHub contents API so no token-bearing URL ever hits a log.
+    Only recognized photo/video extensions are listed, so stray non-media
+    files on the branch can never block the queue head. Alerting uses this
+    directly: a failed lookup (None) must not masquerade as an empty queue
+    and open a false "running low" alarm.
     """
     import urllib.request
     url = (f"https://api.github.com/repos/{_repo_slug()}/contents/"
@@ -49,12 +51,19 @@ def list_queue() -> list[str]:
         with urllib.request.urlopen(req, timeout=30) as r:
             entries = json.load(r)
     except Exception:
-        return []
+        return None
     media_exts = {".jpg", ".jpeg", ".png", ".heic", ".webp",
                   ".mp4", ".mov", ".m4v"}
     return sorted(e["name"] for e in entries
                   if isinstance(e, dict) and e.get("type") == "file"
                   and pathlib.Path(e["name"]).suffix.lower() in media_exts)
+
+
+def list_queue() -> list[str]:
+    """Queue filenames as the picking path sees it: [] when empty OR when
+    the lookup failed. Picking treats both the same (nothing to post);
+    anything that needs the distinction uses list_queue_checked()."""
+    return list_queue_checked() or []
 
 
 def next_file(posted_files: list[str]) -> str | None:

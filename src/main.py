@@ -22,7 +22,7 @@ import time
 
 import requests as _requests
 
-from . import captions as captions_mod
+from . import alerts, captions as captions_mod
 from . import content, instagram, pexels, render, state, token, uploads
 from .config import PREVIEW_DIR, ROOT, load_config, media_url
 
@@ -334,7 +334,20 @@ def run() -> int:
         log(f"tip: {picked['tip']['title']}")
         return 0
 
-    # --- Full run needs secrets ---------------------------------------------
+    # --- Full run: every exit path syncs alerts ---------------------------------
+    # sync() never raises, so it can never mask the real exit code, and the
+    # finally also covers crash paths that bypass every explicit return.
+    # --prepare is a manual testing mode: no alert side effects.
+    token_configured = bool(cfg["access_token"])
+    try:
+        return _run_publish(cfg, args, date, date_str)
+    finally:
+        alerts.sync(cfg, date_str, enabled=not args.prepare,
+                    token_configured=token_configured)
+
+
+def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
+    """The publishing run: secrets check → token housekeeping → content tiers."""
     if not cfg["access_token"]:
         log("ERROR: IG_ACCESS_TOKEN secret is not set — skipping run.")
         return 0  # exit 0 so a not-yet-configured repo doesn't show failures

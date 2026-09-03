@@ -81,3 +81,29 @@ def media_of_day(state: dict, date_str: str) -> str | None:
 
 def set_media_of_day(state: dict, date_str: str, filename: str) -> None:
     day(state, date_str)["media_of_day"] = filename
+
+
+# --- Stock-photo (Pexels) bookkeeping ------------------------------------------
+
+
+def stock_of_day(state: dict, date_str: str) -> dict | None:
+    """The stock photo that was (or will be) posted on a date."""
+    return state.get("days", {}).get(date_str, {}).get("stock_of_day")
+
+
+def set_stock_of_day(state: dict, date_str: str, photo: dict) -> None:
+    """Pin the day's stock photo (idempotent re-runs pick the same photo)."""
+    day(state, date_str)["stock_of_day"] = {
+        "id": photo["id"], "vibe": photo["vibe"],
+        "photographer": photo["photographer"],
+    }
+
+
+def used_stock_ids(state: dict) -> list[int]:
+    """All stock-photo ids ever posted, so no stock photo repeats."""
+    ids = []
+    for d in state.get("days", {}).values():
+        stock = d.get("stock_of_day")
+        if isinstance(stock, dict) and isinstance(stock.get("id"), int):
+            ids.append(stock["id"])
+    return ids

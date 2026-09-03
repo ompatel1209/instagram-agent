@@ -49,6 +49,7 @@ jobs:
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           GH_PAT: ${{ secrets.GH_PAT }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           MEDIA_PUSH_TOKEN: ${{ secrets.GH_PAT != '' && secrets.GH_PAT || github.token }}

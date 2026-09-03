@@ -20,6 +20,8 @@ def load_config() -> dict:
     cfg["access_token"] = os.environ.get("IG_ACCESS_TOKEN", "")
     cfg["ig_user_id"] = os.environ.get("IG_USER_ID", "")
     cfg["gh_pat"] = os.environ.get("GH_PAT", "")
+    # Stock-photo tier (Pexels). Empty key = tier silently disabled.
+    cfg["pexels_api_key"] = os.environ.get("PEXELS_API_KEY", "")
 
     # GitHub repo coordinates, used to build public media URLs and push paths.
     cfg.setdefault("repo_owner", os.environ.get("GITHUB_REPOSITORY_OWNER", ""))

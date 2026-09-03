@@ -23,7 +23,7 @@ import time
 import requests as _requests
 
 from . import captions as captions_mod
-from . import content, instagram, render, state, token, uploads
+from . import content, instagram, pexels, render, state, token, uploads
 from .config import PREVIEW_DIR, ROOT, load_config, media_url
 
 
@@ -237,6 +237,73 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
     return 0 if state.both_published(st, date_str) else 1
 
 
+# --- Stock-photo flow (Pexels, licensed) --------------------------------------
+
+def run_stock_day(cfg: dict, date: dt.date, date_str: str, st: dict,
+                  out_dir: pathlib.Path) -> int:
+    """Publish one licensed stock photo (feed + Story). Returns 0 success,
+    -1 'unavailable, fall back to quotes', 1 'started but incomplete'."""
+    api_key = cfg.get("pexels_api_key", "")
+    if not api_key:
+        log("stock tier disabled (no PEXELS_API_KEY) — skipping")
+        return -1
+
+    # Idempotent re-run: look up the already-pinned photo for this date.
+    pinned = state.stock_of_day(st, date_str)
+    if pinned:
+        fresh = pexels.photo_by_id(api_key, pinned["id"])
+        if not fresh:
+            log(f"ERROR: pinned stock photo #{pinned['id']} not fetchable — "
+                "falling back to quotes")
+            return -1
+        photo = {**fresh, "vibe": pinned["vibe"]}
+        log(f"resuming stock day with photo #{photo['id']} (idempotent re-run)")
+    else:
+        photo = pexels.pick_photo(api_key, date, state.used_stock_ids(st))
+        if not photo:
+            log("no stock photo available today — falling back to quotes")
+            return -1
+        state.set_stock_of_day(st, date_str, photo)
+        state.save(st)
+        log(f"stock photo #{photo['id']} ({photo['vibe']}) by "
+            f"{photo['photographer']}")
+
+    src_path = out_dir / f"{date_str}-stock.bin"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if not pexels.download(photo, src_path):
+        log("ERROR: could not download stock photo — falling back to quotes")
+        return -1
+
+    # Same photo treatment as the user's uploads: padded feed + Story.
+    feed_path = out_dir / f"{date_str}-feed.jpg"
+    story_path = out_dir / f"{date_str}-story.jpg"
+    render.render_upload_feed(src_path, cfg["palette"], feed_path)
+    render.render_upload_story(src_path, cfg["palette"], story_path)
+
+    ok_feed, ok_story = push_media(cfg, date_str)
+    if not (ok_feed and ok_story):
+        log("ERROR: stock media not downloadable — cannot publish.")
+        state.note_failure(st, date_str, "media_push",
+                           "stock media not downloadable after push")
+        state.save(st)
+        return 1
+    log("stock media padded and verified downloadable from media branch")
+
+    bank = captions_mod.load_bank()
+    caption = captions_mod.caption_text(bank, photo["vibe"], date,
+                                        cfg["hashtags"])
+    # Pexels attribution: required-style credit for a licensed stock photo.
+    caption += f"\n\n📷 {photo['photographer']} on Pexels"
+
+    _publish_image_pair_caption(cfg, st, date_str, caption)
+    _note_token(cfg, st, date_str)
+
+    if state.both_published(st, date_str):
+        log(f"{date_str}: complete (stock photo: feed + story published).")
+        return 0
+    return 1
+
+
 # --- Entry point ---------------------------------------------------------------
 
 def run() -> int:
@@ -295,17 +362,30 @@ def run() -> int:
     )
     cfg["access_token"] = new_token
 
-    # --- Uploads queue first; quote/tip flow only when the queue is empty ---
+    # --- Content tiers: uploads queue -> stock photos -> quote/tip --------------
     try:
         rc = run_upload_day(cfg, date, date_str, st, out_dir)
     except Exception as e:  # never let a queue bug kill the daily post
-        log(f"upload flow crashed ({e}) — falling back to quote/tip")
+        log(f"upload flow crashed ({e}) — falling back to stock/quotes")
         rc = 1
     if rc == 0:
         log(f"{date_str}: complete (uploads queue: feed + story published).")
         _note_token(cfg, st, date_str)
         return 0
     if rc == -1:
+        log("uploads queue empty — trying the stock-photo tier")
+        try:
+            stock_rc = run_stock_day(cfg, date, date_str, st, out_dir)
+        except Exception as e:  # stock tier must never kill the daily post
+            log(f"stock flow crashed ({e}) — falling back to quotes")
+            stock_rc = -1
+        if stock_rc == 0:
+            _note_token(cfg, st, date_str)
+            return 0
+        if stock_rc == 1:
+            _note_token(cfg, st, date_str)
+            log(f"{date_str}: stock day incomplete — safety re-run will retry.")
+            return 1
         log("falling back to today's quote/tip graphics")
         st = state.load()
         if state.both_published(st, date_str):
@@ -361,6 +441,44 @@ def _publish_image_pair(cfg: dict, st: dict, date_str: str,
                 cfg["access_token"], cfg["ig_user_id"],
                 media_url(cfg, date_str, "feed"),
                 caption=content.caption_for(picked["quote"], cfg["hashtags"]),
+            )
+            instagram.wait_finished(cfg["access_token"], cid)
+            mid = instagram.publish(cfg["access_token"], cfg["ig_user_id"], cid)
+            state.record_media_id(st, date_str, "feed", mid)
+            state.mark(st, date_str, "publish_feed")
+            state.save(st)
+            log(f"feed published: {mid}")
+        except instagram.InstagramError as e:
+            log(f"feed publish FAILED: {e}")
+            state.note_failure(st, date_str, "feed", e)
+            state.save(st)
+
+    if not state.done(st, date_str, "publish_story"):
+        try:
+            cid = instagram.create_container(
+                cfg["access_token"], cfg["ig_user_id"],
+                media_url(cfg, date_str, "story"), media_type="STORIES",
+            )
+            instagram.wait_finished(cfg["access_token"], cid)
+            mid = instagram.publish(cfg["access_token"], cfg["ig_user_id"], cid)
+            state.record_media_id(st, date_str, "story", mid)
+            state.mark(st, date_str, "publish_story")
+            state.save(st)
+            log(f"story published: {mid}")
+        except instagram.InstagramError as e:
+            log(f"story publish FAILED: {e}")
+            state.note_failure(st, date_str, "story", e)
+            state.save(st)
+
+
+def _publish_image_pair_caption(cfg: dict, st: dict, date_str: str,
+                               caption: str) -> None:
+    """Publish feed + story containers with a custom caption (stock flow)."""
+    if not state.done(st, date_str, "publish_feed"):
+        try:
+            cid = instagram.create_container(
+                cfg["access_token"], cfg["ig_user_id"],
+                media_url(cfg, date_str, "feed"), caption=caption,
             )
             instagram.wait_finished(cfg["access_token"], cid)
             mid = instagram.publish(cfg["access_token"], cfg["ig_user_id"], cid)

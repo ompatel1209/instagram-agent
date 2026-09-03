@@ -348,19 +348,34 @@ def run() -> int:
 
     st = state.load()
 
+    # --- Token housekeeping (never blocks publishing) -------------------------
+    # Runs BEFORE the "already published" early-return below so the token gets
+    # its once-a-day refresh even on days whose post is already complete.
+    # Meta allows one refresh per ~24h, so once a day succeeded we skip.
+    if state.token_refreshed_today(st, date_str):
+        log("token already refreshed today — skipping housekeeping")
+    else:
+        tok_out = token.refresh_and_store(
+            cfg["access_token"], cfg["gh_pat"],
+            f"{cfg['repo_owner']}/{cfg['repo_name']}",
+        )
+        cfg["access_token"] = tok_out["token"]
+        if tok_out["refreshed"] and tok_out["secret_updated"]:
+            log("token refreshed and IG_ACCESS_TOKEN secret updated")
+            state.mark_token_refreshed(st, date_str)
+        else:
+            # Today still runs (possibly on a fresh in-memory token), but the
+            # aging secret is a future-death risk — record it for alerting.
+            log(f"WARNING: {tok_out['reason']}")
+            state.note_token_refresh(st, date_str, tok_out["reason"])
+        state.save(st)
+
     # Idempotency: nothing left to do means the run is complete.
     if state.both_published(st, date_str):
         log(f"{date_str}: feed + story already published — nothing to do.")
         return 0
 
     out_dir = ROOT / "media_out"
-
-    # --- Token housekeeping (never blocks publishing) -------------------------
-    new_token, secret_updated = token.refresh_and_store(
-        cfg["access_token"], cfg["gh_pat"],
-        f"{cfg['repo_owner']}/{cfg['repo_name']}",
-    )
-    cfg["access_token"] = new_token
 
     # --- Content tiers: uploads queue -> stock photos -> quote/tip --------------
     try:

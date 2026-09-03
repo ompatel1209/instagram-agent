@@ -60,6 +60,39 @@ def note_token_expiry(state: dict, expires_iso: str, days_left: int) -> None:
     state["token"] = {"expires": expires_iso, "days_left": days_left}
 
 
+def token_refresh_issues(state: dict) -> list[dict]:
+    """Token-refresh problems recorded on any date (oldest first).
+
+    A refresh that failed to reach the IG_ACCESS_TOKEN secret leaves future
+    runs on an aging token — surfaced here so alerting can flag it.
+    """
+    issues = []
+    for date_str, d in state.get("days", {}).items():
+        rec = d.get("token_refresh")
+        if isinstance(rec, dict) and rec.get("reason"):
+            issues.append({"date": date_str, **rec})
+    return issues
+
+
+def note_token_refresh(state: dict, date_str: str, reason: str) -> None:
+    """Record a token-refresh problem on a date (alerting reads these)."""
+    day(state, date_str)["token_refresh"] = {"reason": str(reason)[:500]}
+
+
+def token_refreshed_today(state: dict, date_str: str) -> bool:
+    """True when this date's once-a-day token refresh already happened.
+
+    Meta allows one refresh per ~24h; a second attempt the same day just
+    earns a "refresh rejected" failure record, so we skip it.
+    """
+    return bool(state.get("days", {}).get(date_str, {}).get("token_refreshed"))
+
+
+def mark_token_refreshed(state: dict, date_str: str) -> None:
+    """Mark this date's token refresh as done (once-per-day guard)."""
+    day(state, date_str)["token_refreshed"] = True
+
+
 # --- Uploads queue bookkeeping ------------------------------------------------
 
 def posted_files(state: dict) -> list[str]:

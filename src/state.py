@@ -50,10 +50,13 @@ def both_published(state: dict, date_str: str) -> bool:
 
 
 def note_failure(state: dict, date_str: str, where: str, message: str) -> None:
-    """Non-fatal bookkeeping for the log/history."""
+    """Non-fatal bookkeeping for the log/history (capped at 20; alerting
+    shows only the last 5 anyway, so unbounded growth just bloats state.json)."""
     d = day(state, date_str)
     history = d.setdefault("failures", [])
     history.append({"where": where, "message": str(message)[:500]})
+    if len(history) > 20:
+        del history[:-20]
 
 
 def note_token_expiry(state: dict, expires_iso: str, days_left: int) -> None:
@@ -75,8 +78,21 @@ def token_refresh_issues(state: dict) -> list[dict]:
 
 
 def note_token_refresh(state: dict, date_str: str, reason: str) -> None:
-    """Record a token-refresh problem on a date (alerting reads these)."""
-    day(state, date_str)["token_refresh"] = {"reason": str(reason)[:500]}
+    """Record a token-refresh problem on a date (alerting reads these).
+
+    A dangerous record ("refreshed but …" — the fresh token never reached
+    the IG_ACCESS_TOKEN secret) must survive later same-day writes: the
+    backup run's routine <24h Meta rejection would otherwise erase the
+    death-signal. Benign records stay replaceable by dangerous ones.
+    """
+    reason = str(reason)[:500]
+    d = day(state, date_str)
+    old = d.get("token_refresh")
+    if (isinstance(old, dict)
+            and str(old.get("reason", "")).startswith("refreshed but")
+            and not reason.startswith("refreshed but")):
+        return
+    d["token_refresh"] = {"reason": reason}
 
 
 def token_refreshed_today(state: dict, date_str: str) -> bool:

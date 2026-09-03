@@ -383,9 +383,12 @@ def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
             state.note_token_refresh(st, date_str, tok_out["reason"])
         state.save(st)
 
-    # Idempotency: nothing left to do means the run is complete.
+    # Idempotency: nothing left to do means the run is complete. Expiry
+    # bookkeeping still runs — this is the path the backup/safety runs take,
+    # and the token alert needs a fresh days_left in state.json.
     if state.both_published(st, date_str):
         log(f"{date_str}: feed + story already published — nothing to do.")
+        _note_token(cfg, st, date_str)
         return 0
 
     out_dir = ROOT / "media_out"
@@ -543,10 +546,13 @@ def _note_token(cfg: dict, st: dict, date_str: str) -> None:
         d_left, iso = token.days_left(cfg["access_token"])
         if d_left is not None:
             state.note_token_expiry(st, iso, d_left)
+            log(f"token expires in {d_left}d ({iso})")
             if d_left < 7:
-                log(f"WARNING: token expires in {d_left}d ({iso}) — refresh "
-                    "the IG_ACCESS_TOKEN secret manually if it wasn't auto-updated.")
+                log("WARNING: refresh the IG_ACCESS_TOKEN secret manually "
+                    "if it wasn't auto-updated.")
             state.save(st)
+        else:
+            log("token expiry unknown (no expires field or /me lookup failed)")
     except Exception:
         pass
 

@@ -142,7 +142,7 @@ def refresh_token(token: str) -> str:
     """Refresh a long-lived Instagram User token. Returns the new token."""
     r = requests.get(
         f"{GRAPH_HOST}/refresh_access_token",
-        params={"grant_type": "th_refresh_token", "access_token": token},
+        params={"grant_type": "ig_refresh_token", "access_token": token},
         timeout=TIMEOUT,
     )
     data = _check(r)
@@ -153,10 +153,14 @@ def refresh_token(token: str) -> str:
 
 
 def token_info(token: str) -> dict:
-    """GET /me?fields=expires — token metadata for expiry tracking."""
+    """GET /me?fields=user_id,expires — token metadata for expiry tracking.
+
+    `expires` is a unix timestamp (long-lived tokens only); expires_in is
+    not a field on the /me node, so asking for it 400s the whole lookup.
+    """
     r = requests.get(
         f"{GRAPH_HOST}/me",  # unversioned works for token introspection
-        params={"fields": "expires,expires_in,user_id", "access_token": token},
+        params={"fields": "user_id,expires", "access_token": token},
         timeout=TIMEOUT,
     )
     return _check(r)

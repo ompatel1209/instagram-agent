@@ -15,16 +15,20 @@ from . import instagram
 
 
 def days_left(token: str) -> tuple[int | None, str]:
-    """Best-effort expiry lookup; returns (days, iso) or (None, '')."""
+    """Best-effort expiry lookup; returns (days, iso) or (None, '').
+
+    /me reports `expires` as a unix timestamp; the floor of the remaining
+    timedelta alarms slightly early, which is the safe direction.
+    """
     try:
         info = instagram.token_info(token)
     except Exception:
         return None, ""
-    expires_in = info.get("expires_in")
-    if expires_in is None:
+    expires_ts = info.get("expires")
+    if expires_ts is None:
         return None, ""
-    exp = dt.datetime.now(dt.timezone.utc) + dt.timedelta(seconds=int(expires_in))
-    days = int(expires_in // 86400)
+    exp = dt.datetime.fromtimestamp(int(expires_ts), tz=dt.timezone.utc)
+    days = (exp - dt.datetime.now(dt.timezone.utc)).days
     return days, exp.date().isoformat()
 
 

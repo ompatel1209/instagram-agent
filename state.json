@@ -31,12 +31,15 @@
       "media_of_day": "0travel.mp4",
       "publish_feed": true,
       "published_media": {
-        "feed": "18104882834264326"
+        "feed": "18104882834264326",
+        "story": "17892583857415476"
       },
-      "token_refreshed": true
+      "token_refreshed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
-    "175f7ed81657ee631f0459b28163a9e9.jpg"
+    "175f7ed81657ee631f0459b28163a9e9.jpg",
+    "0travel.mp4"
   ]
 }

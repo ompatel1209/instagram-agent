@@ -32,10 +32,12 @@
       "publish_feed": true,
       "published_media": {
         "feed": "18104882834264326",
-        "story": "17892583857415476"
+        "story": "17892583857415476",
+        "reel": "18104882834264326"
       },
       "token_refreshed": true,
-      "publish_story": true
+      "publish_story": true,
+      "publish_reel": true
     }
   },
   "posted_files": [

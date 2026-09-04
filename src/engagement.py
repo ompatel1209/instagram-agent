@@ -148,7 +148,40 @@ def reply_to_comments(cfg: dict, st: dict, bank: dict,
     generic_denials = 0
     media_swept = 0
 
-    for mid in _recent_media_ids(st):
+    # Reconcile state-recorded ids against the live account first: a
+    # deleted post 400s on the comments edge with Graph's generic error,
+    # exactly like a scope problem. An id missing from /media is simply
+    # gone — drop it from the sweep (a printed note, not a failure) so it
+    # neither pollutes the log nor fires the all-denied permission flag.
+    ids = _recent_media_ids(st)
+    if not ids:
+        # Nothing recorded to sweep — skip the live-media lookup too:
+        # pruning an empty list is a no-op and media_swept stays 0, so
+        # the all-denied permission flag could never fire anyway.
+        return count, None
+    live_ids: set[str] = set()
+    try:
+        live_ids = {str(m.get("id", "")) for m in
+                    instagram.list_media(token, cfg["ig_user_id"])}
+    except instagram.InstagramError as e:
+        # Non-fatal: without the live list we just sweep everything as
+        # before (deleted posts then show up as per-media failure notes).
+        # The lookup failing IS an error worth recording — it recurs at
+        # most once per run, well inside note_failure's daily cap.
+        _note(st, today_str,
+              f"live media lookup failed — {e}; sweeping all recorded ids")
+    # An empty live list is treated as unknown, not as "everything is
+    # deleted": pruning on it would zero the sweep and silence the
+    # all-denied permission flag. A working account that posts daily
+    # always has live media, so this only fires on a glitch — sweep all.
+    if live_ids:
+        for mid in ids:
+            if mid not in live_ids:
+                print(f"engagement: media {mid} is no longer on the "
+                      "account — skipping")
+        ids = [mid for mid in ids if mid in live_ids]
+
+    for mid in ids:
         media_swept += 1
         try:
             comments = instagram.list_comments(token, mid)

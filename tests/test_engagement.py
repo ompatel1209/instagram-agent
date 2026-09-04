@@ -90,6 +90,16 @@ def fresh_state():
     }}
 
 
+def all_live(st):
+    """Patch list_media so every recorded feed/reel id reads as still on the
+    account — the reconciliation then changes nothing, which is the behavior
+    the pre-reconciliation comment-flow tests were written against."""
+    ids = engagement._recent_media_ids(st)
+    return patch.object(
+        instagram, "list_media",
+        lambda t, u, limit=50: [{"id": i} for i in ids])
+
+
 class TmpState:
     """Context: state.save/load go to a throwaway file, saves are counted."""
 
@@ -312,7 +322,8 @@ def comment_flow_replies_skips_and_saves():
     ]
     replied = []
     with TmpState() as ts:
-        with patch.object(instagram, "list_comments",
+        with all_live(st), \
+             patch.object(instagram, "list_comments",
                           lambda t, m: comments), \
              patch.object(instagram, "reply_to_comment",
                           lambda t, c, m: replied.append((c, m)) or "RID"):
@@ -333,7 +344,8 @@ def comment_cap_respected():
     comments = [{"id": f"C{i}", "text": "wow amazing", "username": "fan"}
                 for i in range(30)]
     with TmpState() as ts:
-        with patch.object(instagram, "list_comments",
+        with all_live(st), \
+             patch.object(instagram, "list_comments",
                           lambda t, m: comments), \
              patch.object(instagram, "reply_to_comment",
                           lambda t, c, m: "RID"):
@@ -351,7 +363,7 @@ def comment_permission_problem_flagged():
             "HTTP 403: (#10) Application does not have permission for this action")
 
     with TmpState():
-        with patch.object(instagram, "list_comments", raise_perm):
+        with all_live(st), patch.object(instagram, "list_comments", raise_perm):
             n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
         assert perm == "comments"
         failures = st["days"][TODAY]["failures"]
@@ -366,7 +378,7 @@ def comment_nonperm_error_returns_no_flag():
         raise instagram.InstagramError("HTTP 500: transient boom")
 
     with TmpState():
-        with patch.object(instagram, "list_comments", raise_boom):
+        with all_live(st), patch.object(instagram, "list_comments", raise_boom):
             n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
         assert n == 0 and perm is None
 
@@ -390,7 +402,8 @@ def story_comments_error_is_not_a_permission_problem():
         return [{"id": "C_OK2", "text": "wow", "username": "fan9"}]
 
     with TmpState():
-        with patch.object(instagram, "list_comments", list_comments), \
+        with all_live(st), \
+             patch.object(instagram, "list_comments", list_comments), \
              patch.object(instagram, "reply_to_comment",
                           lambda t, c, m: "RID"):
             n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
@@ -414,7 +427,8 @@ def comment_reply_failure_continues():
         return "RID"
 
     with TmpState():
-        with patch.object(instagram, "list_comments",
+        with all_live(st), \
+             patch.object(instagram, "list_comments",
                           lambda t, m: comments), \
              patch.object(instagram, "reply_to_comment", reply):
             n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
@@ -442,7 +456,7 @@ def all_media_denied_generic_is_a_permission_problem():
             "permissions, or does not support this operation")
 
     with TmpState():
-        with patch.object(instagram, "list_comments", denied):
+        with all_live(st), patch.object(instagram, "list_comments", denied):
             n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
         assert n == 0 and perm == "comments"
 
@@ -461,10 +475,155 @@ def all_media_denied_generic_is_a_permission_problem():
         raise instagram.InstagramError("HTTP 500: transient")
 
     with TmpState():
-        with patch.object(instagram, "list_comments", mixed):
+        with all_live(st2), patch.object(instagram, "list_comments", mixed):
             n, perm = engagement.reply_to_comments(CFG, st2, BANK, TODAY)
         assert n == 0 and perm is None
         assert calls == ["M_FEED", "M_REEL"]   # pass continued past both
+
+
+# ---------------------------------------------- live-media reconciliation
+@test
+def client_list_media():
+    _fake.responses = [FakeResponse(200, {"data": [{"id": "M1"}, {"id": "M2"}]})]
+    out = instagram.list_media("TOK", "IG_USER")
+    assert out == [{"id": "M1"}, {"id": "M2"}]
+    method, url, kw = _fake.calls[-1]
+    assert (method, url) == ("GET", f"{instagram.BASE}/IG_USER/media")
+    p = kw["params"]
+    assert p["fields"] == "id" and p["limit"] == 50
+    assert p["access_token"] == "TOK"
+    assert "TOK" not in url                # token in params, never the URL
+    # custom limit rides through
+    _fake.responses = [FakeResponse(200, {"data": []})]
+    assert instagram.list_media("TOK", "IG_USER", limit=7) == []
+    assert _fake.calls[-1][2]["params"]["limit"] == 7
+
+
+@test
+def dead_media_ids_skipped_not_flagged():
+    # Probe-3 finding: state holds ids the account no longer has. The
+    # reconciliation must skip them BEFORE any comments call — no failure
+    # notes (an hourly run would flood the 20/day cap), no all-denied
+    # permission flag from media that merely isn't there anymore.
+    st = fresh_state()
+
+    def live(t, u, limit=50):
+        return [{"id": "M_FEED"}]          # only the feed id is live
+
+    comments = [{"id": "C1", "text": "so cute", "username": "fan"}]
+    replied = []
+    with TmpState():
+        with patch.object(instagram, "list_media", live), \
+             patch.object(instagram, "list_comments",
+                          lambda t, m: comments), \
+             patch.object(instagram, "reply_to_comment",
+                          lambda t, c, m: replied.append(m) or "RID"):
+            n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
+        assert n == 1 and perm is None
+        assert replied                      # the LIVE post still gets answered
+        assert st["days"][TODAY].get("failures") is None   # zero noise
+        # M_REEL (dead) never reached list_comments — 5 recent ids include
+        # it, but only M_FEED was queried.
+
+
+@test
+def all_live_denied_still_flags():
+    # The all-denied flag must count only LIVE media: token scope problems
+    # deny exactly the live set, so live-everything-denied still flags
+    # "comments" — the reconciliation must not be able to silence it.
+    st = fresh_state()
+
+    def live(t, u, limit=50):
+        return [{"id": "M_FEED"}, {"id": "M_REEL"}]   # everything is live
+
+    def denied(t, mid):
+        raise instagram.InstagramError(
+            "HTTP 400: Unsupported get request. Object with ID "
+            f"'{mid}' does not exist, cannot be loaded due to missing "
+            "permissions, or does not support this operation")
+
+    with TmpState():
+        with patch.object(instagram, "list_media", live), \
+             patch.object(instagram, "list_comments", denied):
+            n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
+        assert n == 0 and perm == "comments"
+
+
+@test
+def dead_and_live_mix_does_not_flag():
+    # Probe-3's exact live shape: 1 of the 5 recent ids live and working,
+    # 4 dead (400 generic on the comments edge). The pre-reconciliation
+    # code correctly refused to flag it — the reconciliation must keep
+    # that verdict: it prunes the dead ids first, so the flag only looks
+    # at the live set (which here is healthy).
+    st = {"days": {
+        "2026-09-04": {"published_media": {
+            "feed": "M_LIVE", "reel": "M_DEAD1"}},
+        "2026-09-03": {"published_media": {
+            "feed": "M_DEAD2", "reel": "M_DEAD3"}},
+    }}
+
+    def live(t, u, limit=50):
+        return [{"id": "M_LIVE"}]
+
+    def list_comments(t, mid):
+        assert mid == "M_LIVE", f"dead id {mid} queried"
+        return []                          # live post, simply no comments
+
+    with TmpState():
+        with patch.object(instagram, "list_media", live), \
+             patch.object(instagram, "list_comments", list_comments):
+            n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
+        assert n == 0 and perm is None
+
+
+@test
+def list_media_failure_falls_back_to_full_sweep():
+    # The reconciliation itself must never be able to break the sweep:
+    # when /media 500s we fall back to sweeping every recorded id exactly
+    # as before (dead posts then surface as ordinary per-media notes).
+    st = fresh_state()
+    queried = []
+
+    def boom(t, u, limit=50):
+        raise instagram.InstagramError("HTTP 500: media lookup boom")
+
+    def list_comments(t, mid):
+        queried.append(mid)
+        return []
+
+    with TmpState():
+        with patch.object(instagram, "list_media", boom), \
+             patch.object(instagram, "list_comments", list_comments):
+            n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
+        assert n == 0 and perm is None
+        assert queried == ["M_FEED", "M_REEL"]   # full unfiltered sweep
+        assert any("live media lookup failed" in f["message"]
+                   for f in st["days"][TODAY]["failures"])
+
+
+@test
+def empty_live_list_treated_as_unknown():
+    # list_media succeeding with an empty payload (a glitch) must not be
+    # read as "the account has nothing live": pruning on that would zero
+    # the sweep and permanently silence the all-denied flag. Fall back
+    # to the full sweep instead.
+    st = fresh_state()
+    queried = []
+
+    def empty(t, u, limit=50):
+        return []
+
+    def list_comments(t, mid):
+        queried.append(mid)
+        return []
+
+    with TmpState():
+        with patch.object(instagram, "list_media", empty), \
+             patch.object(instagram, "list_comments", list_comments):
+            n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
+        assert n == 0 and perm is None
+        assert queried == ["M_FEED", "M_REEL"]   # nothing was pruned
 
 
 # --------------------------------------------------------------------- DM flow
@@ -640,15 +799,20 @@ def alerts_evaluate_includes_engagement_condition():
 @test
 def run_smoke_writes_engagement_record():
     cfg = dict(CFG, gh_pat="")
+    st = fresh_state()
     with TmpState():
+        # run() loads state from the tmp file, so seed it with media ids
+        state.save(st)
         with patch.object(engagement, "load_config", lambda: cfg), \
+             patch.object(instagram, "list_media", lambda t, u, limit=50: []), \
              patch.object(instagram, "list_comments", lambda t, m: []), \
              patch.object(instagram, "list_conversations",
                           lambda t, u: []):
             engagement.run()
-        st = state.load()
-        assert st["engagement"]["permissions_missing"] == []
-        assert "0 comment replies, 0 DM replies" == st["engagement"]["last_run"]
+        loaded = state.load()
+        assert loaded["engagement"]["permissions_missing"] == []
+        assert "0 comment replies, 0 DM replies" == \
+            loaded["engagement"]["last_run"]
 
 
 # ---------------------------------------------------------------------- runner

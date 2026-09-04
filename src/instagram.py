@@ -169,6 +169,23 @@ def token_info(token: str) -> dict:
 # --- Engagement: comments + DMs ------------------------------------------------
 
 
+def list_media(token: str, ig_user_id: str, limit: int = 50) -> list[dict]:
+    """The account's published media (posts, reels…): GET /{ig-user-id}/media.
+
+    Covered by instagram_business_basic — the same permission publishing
+    uses — so it works with the current token. Engagement uses it to tell
+    a deleted post from a permission failure on the comments edge: an id
+    missing here is gone from the account no matter what its comments call
+    returns.
+    """
+    r = requests.get(
+        f"{BASE}/{ig_user_id}/media",
+        params={"fields": "id", "limit": limit, "access_token": token},
+        timeout=TIMEOUT,
+    )
+    return _check(r).get("data", [])
+
+
 def list_comments(token: str, media_id: str, limit: int = 30) -> list[dict]:
     """Recent comments on a published media object (newest first).
 

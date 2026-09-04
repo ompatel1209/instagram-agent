@@ -129,13 +129,31 @@
         "photographer": "Alena Darmel"
       },
       "publish_reel": true
+    },
+    "2026-09-08": {
+      "token_refreshed": true,
+      "media_of_day": "339713e9dde860f30fe6e5119e0c6571.jpg",
+      "published_media": {
+        "feed": "18265548817306882",
+        "story": "17917399833443368",
+        "reel": "18116425345745652"
+      },
+      "publish_feed": true,
+      "publish_story": true,
+      "reel_of_day": {
+        "id": 6962684,
+        "vibe": "selflove",
+        "photographer": "Cup of  Couple"
+      },
+      "publish_reel": true
     }
   },
   "posted_files": [
     "175f7ed81657ee631f0459b28163a9e9.jpg",
     "0travel.mp4",
     "218a6ed45b70d6455c297e7663fe66a8.jpg",
-    "2f86be10f2bff0714eb8586ca5e5bdc5.jpg"
+    "2f86be10f2bff0714eb8586ca5e5bdc5.jpg",
+    "339713e9dde860f30fe6e5119e0c6571.jpg"
   ],
   "engagement": {
     "permissions_missing": [],

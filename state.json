@@ -44,10 +44,12 @@
       "media_of_day": "218a6ed45b70d6455c297e7663fe66a8.jpg",
       "published_media": {
         "feed": "17965984944008226",
-        "story": "18001752659886257"
+        "story": "18001752659886257",
+        "reel": "18123002017869959"
       },
       "publish_feed": true,
-      "publish_story": true
+      "publish_story": true,
+      "publish_reel": true
     }
   },
   "posted_files": [

@@ -22,10 +22,18 @@
       "media_of_day": "175f7ed81657ee631f0459b28163a9e9.jpg",
       "published_media": {
         "feed": "17874176307567652",
-        "story": "18125452819781495"
+        "story": "18125452819781495",
+        "reel": "18367147831212641"
       },
       "publish_feed": true,
-      "publish_story": true
+      "publish_story": true,
+      "token_refreshed": true,
+      "reel_of_day": {
+        "id": 8749787,
+        "vibe": "ootd",
+        "photographer": "Anastasia  Shuraeva"
+      },
+      "publish_reel": true
     },
     "2026-09-05": {
       "media_of_day": "0travel.mp4",

@@ -33,7 +33,13 @@
         "vibe": "ootd",
         "photographer": "Anastasia  Shuraeva"
       },
-      "publish_reel": true
+      "publish_reel": true,
+      "failures": [
+        {
+          "where": "engagement",
+          "message": "list comments on 18618027775052203 failed — HTTP 400: Unsupported get request. Object with ID '18618027775052203' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        }
+      ]
     },
     "2026-09-05": {
       "media_of_day": "0travel.mp4",
@@ -82,5 +88,11 @@
     "0travel.mp4",
     "218a6ed45b70d6455c297e7663fe66a8.jpg",
     "2f86be10f2bff0714eb8586ca5e5bdc5.jpg"
-  ]
+  ],
+  "engagement": {
+    "permissions_missing": [
+      "comments"
+    ],
+    "last_run": "0 comment replies, 0 DM replies"
+  }
 }

@@ -79,10 +79,19 @@ def _pick_replies(cat: dict, kind: str, seed: str) -> list[str]:
 
 
 def _permission_problem(err_text: str) -> bool:
-    """Heuristic: does this API error look like a missing permission?"""
+    """Heuristic: does this API error name a missing permission explicitly?
+
+    Deliberately strict. The generic Graph error "Object with ID … does not
+    exist, cannot be loaded due to missing permissions, or does not support
+    this operation" fires for perfectly-permissioned requests (e.g. the
+    comments edge of a Story, which simply does not exist), so the mere
+    word "permission" must NOT trip this — only explicit scope markers:
+    error codes #10/#200, "admin approval", "authorize", or a named
+    instagram_* scope."""
     low = err_text.lower()
-    return ("permission" in low or "admin approval" in low
-            or "#10" in low or "#200" in low or "authorize" in low)
+    return ("admin approval" in low or "#10" in low or "#200" in low
+            or "authorize" in low or "instagram_manage_comments" in low
+            or "instagram_business_manage_messages" in low)
 
 
 def _note(state_obj: dict, today_str: str, message: str) -> None:
@@ -94,13 +103,18 @@ def _note(state_obj: dict, today_str: str, message: str) -> None:
 
 
 def _recent_media_ids(st: dict, limit: int = COMMENT_MEDIA_LIMIT) -> list[str]:
-    """Newest-first published media ids (feed/story/reel) from state.json."""
+    """Newest-first published media ids (feed/reel only) from state.json.
+
+    Stories are excluded on purpose: they have no comments edge, so asking
+    for their comments 400s with Graph's generic "does not exist … missing
+    permissions, or does not support this operation" error — which would
+    otherwise look exactly like a scope problem."""
     ids: list[str] = []
     for date_str in sorted(st.get("days", {}).keys(), reverse=True):
         pm = st.get("days", {}).get(date_str, {}).get("published_media")
         if not isinstance(pm, dict):
             continue
-        for kind in ("feed", "reel", "story"):
+        for kind in ("feed", "reel"):
             mid = pm.get(kind)
             if mid and mid not in ids:
                 ids.append(str(mid))
@@ -122,8 +136,13 @@ def reply_to_comments(cfg: dict, st: dict, bank: dict,
             comments = instagram.list_comments(token, mid)
         except instagram.InstagramError as e:
             msg = str(e)
+            # A single object whose comments can't be fetched (deleted post,
+            # API hiccup) must not end the pass — note it and keep going.
+            # Only a genuine scope problem stops everything.
             _note(st, today_str, f"list comments on {mid} failed — {msg}")
-            return count, "comments" if _permission_problem(msg) else None
+            if _permission_problem(msg):
+                return count, "comments"
+            continue
         for c in comments:
             if count >= MAX_COMMENT_REPLIES:
                 return count, None

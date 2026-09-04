@@ -372,6 +372,35 @@ def comment_nonperm_error_returns_no_flag():
 
 
 @test
+def story_comments_error_is_not_a_permission_problem():
+    # The EXACT live error from the scope probe (run 33898808806): a
+    # Story media id has no comments edge, and Graph's generic 400 names
+    # "missing permissions" among its guesses. That must NOT be read as a
+    # scope problem — and one bad media object must not abort the pass.
+    st = fresh_state()
+    seen = []
+
+    def list_comments(t, mid):
+        seen.append(mid)
+        if mid == "M_STORY":            # no story in state? raise anyway below
+            raise instagram.InstagramError(
+                "HTTP 400: Unsupported get request. Object with ID "
+                "'18618027775052203' does not exist, cannot be loaded due "
+                "to missing permissions, or does not support this operation")
+        return [{"id": "C_OK2", "text": "wow", "username": "fan9"}]
+
+    with TmpState():
+        with patch.object(instagram, "list_comments", list_comments), \
+             patch.object(instagram, "reply_to_comment",
+                          lambda t, c, m: "RID"):
+            n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
+        assert perm is None                 # generic 400 ≠ scope problem
+        assert n == 1                       # feed post still answered
+        assert "M_STORY" not in seen        # stories not queried at all
+        assert seen == ["M_FEED", "M_REEL"]  # pass continued past errors
+
+
+@test
 def comment_reply_failure_continues():
     st = fresh_state()
     comments = [
@@ -533,7 +562,9 @@ def recent_media_ids_newest_first_dedup_limited():
         "2026-09-03": {"published_media": {"feed": "NEW"}},   # dup across days
     }}
     assert engagement._recent_media_ids(st, limit=2) == ["NEW", "R"]
-    assert engagement._recent_media_ids(st) == ["NEW", "R", "S", "OLD1"]
+    # Stories are excluded on purpose (no comments edge — querying one 400s
+    # with Graph's generic permission-sounding error).
+    assert engagement._recent_media_ids(st) == ["NEW", "R", "OLD1"]
     assert engagement._recent_media_ids({"days": {}}) == []
 
 

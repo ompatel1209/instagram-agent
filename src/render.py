@@ -129,37 +129,34 @@ def render_feed(quote: dict, palette: list[list[int]], handle: str,
 
 # --- Uploaded user photos ---------------------------------------------------
 
-def pad_to_ratio(src_path: pathlib.Path, size: tuple[int, int],
-                 palette: list[list[int]], out_path: pathlib.Path) -> pathlib.Path:
-    """Letterbox a user photo onto a gradient canvas of the target ratio.
+def fill_to_ratio(src_path: pathlib.Path, size: tuple[int, int],
+                  out_path: pathlib.Path) -> pathlib.Path:
+    """Full-bleed a user photo into the target ratio, with no background.
 
-    The photo is scaled to fit fully inside `size` (no cropping), then
-    centered on a vertical gradient built from the same palette — so a
-    landscape photo posted to the 4:5 feed or 9:16 story keeps its framing
-    and still fills the frame edge to edge.
+    The photo is scaled and center-cropped to exactly `size`, so it fills
+    the frame edge to edge: no gradient and no colored bars around it. The
+    crop is biased toward the upper third, where faces usually are, so a
+    wide photo keeps the subject when it meets the tall story ratio.
     """
-    bg = gradient(size, [tuple(c) for c in palette])
     photo = Image.open(src_path)
     photo = ImageOps.exif_transpose(photo)  # respect phone rotation
-    photo.thumbnail(size, Image.LANCZOS)
-    x = (size[0] - photo.width) // 2
-    y = (size[1] - photo.height) // 2
-    bg.paste(photo, (x, y))
+    photo = ImageOps.fit(photo, size, Image.LANCZOS,
+                         centering=(0.5, 0.35))  # bias crop toward faces
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    bg.convert("RGB").save(out_path, "JPEG", quality=92)
+    photo.convert("RGB").save(out_path, "JPEG", quality=92)
     return out_path
 
 
 def render_upload_feed(src_path: pathlib.Path, palette: list[list[int]],
                        out_path: pathlib.Path) -> pathlib.Path:
-    """User photo padded to the 4:5 feed ratio."""
-    return pad_to_ratio(src_path, FEED_SIZE, palette, out_path)
+    """User photo full-bleed into the 4:5 feed ratio (no background)."""
+    return fill_to_ratio(src_path, FEED_SIZE, out_path)
 
 
 def render_upload_story(src_path: pathlib.Path, palette: list[list[int]],
                         out_path: pathlib.Path) -> pathlib.Path:
-    """User photo padded to the 9:16 story ratio."""
-    return pad_to_ratio(src_path, STORY_SIZE, palette, out_path)
+    """User photo full-bleed into the 9:16 story ratio (no background)."""
+    return fill_to_ratio(src_path, STORY_SIZE, out_path)
 
 
 def extract_cover_frame(video_path: pathlib.Path, out_path: pathlib.Path,

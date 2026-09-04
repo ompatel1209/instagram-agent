@@ -510,12 +510,15 @@ def _reel_gapfill(cfg: dict, date: dt.date, date_str: str, st: dict,
     if state.done(st, date_str, "publish_reel"):
         return True
     try:
-        return reel.run(cfg, date, date_str, st, out_dir)
+        ok = reel.run(cfg, date, date_str, st, out_dir)
     except Exception as e:  # reel tier must never kill feed/story success
         log(f"reel gap-fill failed ({e})")
         state.note_failure(st, date_str, "reel", e)
-        state.save(st)
-        return False
+        ok = False
+    # reel.run mutates st (video pin, media id, failure notes) but never
+    # saves — persist here so a re-run never double-posts the reel.
+    state.save(st)
+    return ok
 
 
 def _day_complete_exit(st: dict, date_str: str, label: str) -> int:

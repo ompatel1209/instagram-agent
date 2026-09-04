@@ -164,3 +164,82 @@ def token_info(token: str) -> dict:
         timeout=TIMEOUT,
     )
     return _check(r)
+
+
+# --- Engagement: comments + DMs ------------------------------------------------
+
+
+def list_comments(token: str, media_id: str, limit: int = 30) -> list[dict]:
+    """Recent comments on a published media object (newest first).
+
+    Each item: {"id", "text", "username" (from username field), "timestamp"}.
+    """
+    r = requests.get(
+        f"{BASE}/{media_id}/comments",
+        params={
+            "fields": "id,text,username,timestamp",
+            "limit": limit,
+            "access_token": token,
+        },
+        timeout=TIMEOUT,
+    )
+    return _check(r).get("data", [])
+
+
+def reply_to_comment(token: str, comment_id: str, message: str) -> str:
+    """Reply to a comment: POST /{comment-id}/replies. Returns the reply id."""
+    r = requests.post(
+        f"{BASE}/{comment_id}/replies",
+        data={"message": message, "access_token": token},
+        timeout=TIMEOUT,
+    )
+    data = _check(r)
+    rid = data.get("id")
+    if not rid:
+        raise InstagramError(f"comment reply returned no id: {data}")
+    return str(rid)
+
+
+def list_conversations(token: str, ig_user_id: str) -> list[dict]:
+    """Instagram DM conversations (threads) for the account.
+
+    Each item: {"id", "users": [{"username", ...}], "messages": {"data":
+    [{"id","text"(from message field),"created_time"}]}} — the messages
+    edge is included so unanswered threads can be detected in one call.
+    """
+    r = requests.get(
+        f"{BASE}/{ig_user_id}/conversations",
+        params={
+            "platform": "instagram",
+            "fields": (
+                "id,users,updated_time,"
+                "messages.limit(5){id,from,text,created_time}"
+            ),
+            "access_token": token,
+        },
+        timeout=TIMEOUT,
+    )
+    return _check(r).get("data", [])
+
+
+def send_message(token: str, ig_user_id: str, igsid: str, text: str) -> str:
+    """Send a DM: POST /{ig-id}/messages with the nested JSON payload.
+
+    Unlike the flat form-encoded endpoints above, the messaging API needs
+    this nested shape: {"recipient": {"id": ...}, "message": {"text": ...}}.
+    The access token rides in the JSON body — never in the URL.
+    """
+    r = requests.post(
+        f"{BASE}/{ig_user_id}/messages",
+        json={
+            "recipient": {"id": igsid},
+            "message": {"text": text},
+            "access_token": token,
+        },
+        timeout=TIMEOUT,
+    )
+    data = _check(r)
+    mid = data.get("message_id") or data.get("id")
+    if not mid:
+        raise InstagramError(f"send_message returned no id: {data}")
+    return str(mid)

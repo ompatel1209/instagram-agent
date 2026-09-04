@@ -182,3 +182,62 @@ def used_reel_ids(state: dict) -> list[int]:
         if isinstance(reel, dict) and isinstance(reel.get("id"), int):
             ids.append(reel["id"])
     return ids
+
+
+# --- Engagement (auto-replies) bookkeeping --------------------------------------
+#
+# Comment ids and DM thread ids we've already replied to live in capped
+# top-level lists (like posted_files, but bounded) so state.json never
+# grows without limit: an hourly workflow would otherwise add rows forever.
+
+ENGAGEMENT_CAP = 50
+
+
+def _capped_list(state: dict, key: str) -> list:
+    """The capped list stored under `key`, trimmed to the newest ENGAGEMENT_CAP.
+
+    The trim also runs after every append (see mark_* functions) — trimming
+    only here would let a list grow to ENGAGEMENT_CAP + 1 between appends
+    and leak that extra entry into the saved state.json."""
+    items = state.setdefault(key, [])
+    if len(items) > ENGAGEMENT_CAP:
+        del items[:-ENGAGEMENT_CAP]
+    return items
+
+
+def replied_comments(state: dict) -> list[str]:
+    return list(state.get("replied_comments", []))
+
+
+def mark_comment_replied(state: dict, comment_id: str) -> None:
+    items = _capped_list(state, "replied_comments")
+    if comment_id not in items:
+        items.append(comment_id)
+        del items[:-ENGAGEMENT_CAP]
+
+
+def dm_replied(state: dict) -> list[str]:
+    return list(state.get("dm_replied", []))
+
+
+def mark_dm_replied(state: dict, thread_id: str) -> None:
+    items = _capped_list(state, "dm_replied")
+    if thread_id not in items:
+        items.append(thread_id)
+        del items[:-ENGAGEMENT_CAP]
+
+
+def dm_replied_today(state: dict, date_str: str) -> list[str]:
+    """Threads already answered today (a fresh reply per day per thread)."""
+    return list(
+        state.get("days", {}).get(date_str, {}).get("dm_replied_today", [])
+    )
+
+
+def mark_dm_thread_replied(state: dict, date_str: str, thread_id: str) -> None:
+    d = day(state, date_str)
+    items = d.setdefault("dm_replied_today", [])
+    if thread_id not in items:
+        items.append(thread_id)
+    if len(items) > ENGAGEMENT_CAP:
+        del items[:-ENGAGEMENT_CAP]

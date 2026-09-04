@@ -1,0 +1,51 @@
+name: Engagement auto-replies
+
+on:
+  schedule:
+    - cron: "7 * * * *"     # hourly at :07 — off the :00/:30 collision marks,
+                            # and staggered from the post crons (03:33/03:48/09:34)
+  workflow_dispatch:        # manual "Run workflow" button — the scope probe
+
+concurrency:
+  group: instagram-engage
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  engage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout (main, with tokens)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT != '' && secrets.GH_PAT || github.token }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run engagement (comments + DMs)
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python -m src.engagement
+
+      - name: Push state to main
+        if: ${{ always() }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT != '' && secrets.GH_PAT || github.token }}
+        run: bash scripts/push_state.sh

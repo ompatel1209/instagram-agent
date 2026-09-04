@@ -23,6 +23,7 @@ TOKEN_EXPIRY_TITLE = TITLE_PREFIX + "IG token expires soon"
 TOKEN_REFRESH_TITLE = TITLE_PREFIX + "daily token refresh is failing"
 QUEUE_LOW_TITLE = TITLE_PREFIX + "uploads queue running low"
 NOT_CONFIGURED_TITLE = TITLE_PREFIX + "agent is not configured"
+ENGAGEMENT_PERMS_TITLE = TITLE_PREFIX + "auto-replies missing permissions"
 
 TOKEN_ALERT_DAYS = 7    # alert when the token has fewer days left than this
 QUEUE_LOW_FILES = 2     # alert when at most this many uploads remain
@@ -62,6 +63,42 @@ def _refreshed_recently(st: dict, date_str: str) -> bool:
         if state.token_refreshed_today(st, day):
             return True
     return False
+
+
+def evaluate_engagement(st: dict) -> dict:
+    """Desired state of the ONE engagement-permission issue.
+
+    src/engagement.py writes st["engagement"]["permissions_missing"] every
+    run, so this single issue opens when a capability (comments/messages)
+    fails and closes itself on the first run where it works again — never
+    one issue per failure.
+    """
+    eng = st.get("engagement") if isinstance(st.get("engagement"), dict) else {}
+    missing = eng.get("permissions_missing") or []
+    a = {"title": ENGAGEMENT_PERMS_TITLE, "open": bool(missing)}
+    if missing:
+        perm_names = {
+            "comments": "instagram_manage_comments (replying to comments)",
+            "messages": "instagram_business_manage_messages (reading and "
+                        "answering DMs)",
+        }
+        lines = ["The auto-reply feature could not use:"]
+        for cap in missing:
+            lines.append(f"- {perm_names.get(cap, cap)}")
+        lines += ["",
+                  "The IG_ACCESS_TOKEN was generated without these "
+                  "permissions. Fix: re-run the token-generation flow "
+                  "(Meta Graph API explorer with the Instagram Login "
+                  "product) with both permissions selected, then update "
+                  "the IG_ACCESS_TOKEN secret.",
+                  "",
+                  "state.json records this under "
+                  "\"engagement\" -> \"permissions_missing\"; the issue "
+                  "closes itself once a run succeeds."]
+        a["body"] = "\n".join(lines)
+    else:
+        a["resolve_note"] = "auto-replies are working again."
+    return a
 
 
 def evaluate(st: dict, date_str: str, queue: list[str] | None,
@@ -187,6 +224,10 @@ def evaluate(st: dict, date_str: str, queue: list[str] | None,
         else:
             a["resolve_note"] = f"queue restocked ({len(remaining)} files)."
         out.append(a)
+
+    # 5. Engagement permissions — one stable issue when the token lacks
+    # comment/message permissions (engagement.run writes the record).
+    out.append(evaluate_engagement(st))
 
     return out
 

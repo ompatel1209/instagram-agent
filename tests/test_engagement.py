@@ -425,6 +425,48 @@ def comment_reply_failure_continues():
                    for f in st["days"][TODAY]["failures"])
 
 
+@test
+def all_media_denied_generic_is_a_permission_problem():
+    # The second live probe (run 33899788977): EVERY feed/reel media object
+    # the agent itself published 400s on the comments edge with Graph's
+    # generic error. The objects exist and stories are never queried, so
+    # by elimination the cause is the missing
+    # instagram_business_manage_comments permission — that must be flagged
+    # (it opens the alert issue that tells the user to extend the token).
+    st = fresh_state()
+
+    def denied(t, mid):
+        raise instagram.InstagramError(
+            "HTTP 400: Unsupported get request. Object with ID "
+            f"'{mid}' does not exist, cannot be loaded due to missing "
+            "permissions, or does not support this operation")
+
+    with TmpState():
+        with patch.object(instagram, "list_comments", denied):
+            n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
+        assert n == 0 and perm == "comments"
+
+    # But a MIXED failure (one generic + one 500) must NOT be read as a
+    # scope problem — that shape is an outage or a deleted post.
+    st2 = fresh_state()
+    calls = []
+
+    def mixed(t, mid):
+        calls.append(mid)
+        if mid == "M_FEED":
+            raise instagram.InstagramError(
+                "HTTP 400: Unsupported get request. Object with ID "
+                "'M_FEED' does not exist, cannot be loaded due to missing "
+                "permissions, or does not support this operation")
+        raise instagram.InstagramError("HTTP 500: transient")
+
+    with TmpState():
+        with patch.object(instagram, "list_comments", mixed):
+            n, perm = engagement.reply_to_comments(CFG, st2, BANK, TODAY)
+        assert n == 0 and perm is None
+        assert calls == ["M_FEED", "M_REEL"]   # pass continued past both
+
+
 # --------------------------------------------------------------------- DM flow
 @test
 def dm_flow_answers_only_fresh_incoming():

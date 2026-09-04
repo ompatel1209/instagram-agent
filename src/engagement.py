@@ -94,6 +94,21 @@ def _permission_problem(err_text: str) -> bool:
             or "instagram_business_manage_messages" in low)
 
 
+def _generic_object_error(err_text: str) -> bool:
+    """Graph's generic 400: "Object with ID … does not exist, cannot be
+    loaded due to missing permissions, or does not support this operation."
+
+    It names three possible causes. When it fires for media THIS agent
+    published via media_publish, "does not exist" is ruled out and stories
+    (no comments edge) are never queried — so by elimination the cause is
+    the missing instagram_business_manage_comments permission. The callers
+    only act on it when EVERY media object in the sweep failed this way
+    (a mix of shapes can be an outage or a deleted post; those must not
+    open a permission alert)."""
+    low = err_text.lower()
+    return "does not exist" in low and "missing permissions" in low
+
+
 def _note(state_obj: dict, today_str: str, message: str) -> None:
     print(f"engagement: {message}")
     state.note_failure(state_obj, today_str, "engagement", message)
@@ -130,8 +145,11 @@ def reply_to_comments(cfg: dict, st: dict, bank: dict,
     replied = set(state.replied_comments(st))
     own = _own_usernames(bank, cfg)
     count = 0
+    generic_denials = 0
+    media_swept = 0
 
     for mid in _recent_media_ids(st):
+        media_swept += 1
         try:
             comments = instagram.list_comments(token, mid)
         except instagram.InstagramError as e:
@@ -142,6 +160,8 @@ def reply_to_comments(cfg: dict, st: dict, bank: dict,
             _note(st, today_str, f"list comments on {mid} failed — {msg}")
             if _permission_problem(msg):
                 return count, "comments"
+            if _generic_object_error(msg):
+                generic_denials += 1
             continue
         for c in comments:
             if count >= MAX_COMMENT_REPLIES:
@@ -173,6 +193,11 @@ def reply_to_comments(cfg: dict, st: dict, bank: dict,
             count += 1
             print(f"engagement: replied to comment {cid} "
                   f"({cat['key']}) — {reply[:40]}…")
+    # Every own published media object denied with Graph's generic 400 —
+    # by elimination (the objects exist; stories are never queried) that
+    # is the missing instagram_business_manage_comments permission.
+    if media_swept and generic_denials == media_swept:
+        return count, "comments"
     return count, None
 
 

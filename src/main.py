@@ -110,11 +110,14 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
     is_video = captions_mod.is_video(filename)
     bank = captions_mod.load_bank()
     picked = captions_mod.pick(bank, vibe, date)
+    # Combinatorial caption when parts exist, static bank otherwise.
+    # Either way it's deterministic per (vibe, date) — re-run safe.
+    line = captions_mod.compose_caption(vibe, date) or picked["caption"]
     # Static vibe bank first, then rotated trending tags (deterministic
     # per date, so re-runs never rewrite a published caption).
     tags = trending.caption_tags(
         vibe, date, picked["hashtags"], cfg["hashtags"])
-    caption = captions_mod.format_caption(picked["caption"], tags)
+    caption = captions_mod.format_caption(line, tags)
     log(f"upload: {filename} (vibe: {vibe}, {'video' if is_video else 'photo'})")
 
     src_url = uploads.raw_url(filename, cfg)

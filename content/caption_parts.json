@@ -1,0 +1,199 @@
+{
+  "_readme": "Combinatorial caption parts. compose_caption() in src/captions.py picks one opener + one line + one closer per (date, vibe) — openers x lines x closers combos per vibe, so the effective caption bank is hundreds per vibe instead of 15 statics. Lines carry the vibe voice; openers/closers are shared personality. All vibes must match content/captions.json keys.",
+  "openers": [
+    "okay but",
+    "not me but",
+    "POV:",
+    "no thoughts just",
+    "lowkey",
+    "sis, gather round —",
+    "gentle reminder:",
+    "manifesting this energy:",
+    "current mood:",
+    "if you know you know —"
+  ],
+  "vibes": {
+    "selfie": {
+      "lines": [
+        "this selfie is doing numbers in my camera roll",
+        "the lighting said 'you're the moment' and I believed it",
+        "felt cute, might keep this one forever",
+        "front camera never lies (today it didn't)",
+        "me, my glow, and zero explanations",
+        "this angle took 47 tries and I'm not sorry",
+        "my face card said it's not declining today",
+        "gold hoops + this light = my favourite kind of math",
+        "the sun really said 'let me assist her'",
+        "skincare walking so this selfie could run",
+        "unbothered. moisturized. in my lane.",
+        "the camera caught me in my soft era",
+        "one selfie away from making it my whole personality",
+        "me pretending this wasn't the 12th take"
+      ],
+      "closers": [
+        "🤍✨",
+        "it's giving main character 🎬",
+        "save this for your next glow-up 🌞",
+        "soft life only 🌸",
+        "and that's on confidence 💅",
+        "scroll slowly, it's a whole vibe ✨"
+      ]
+    },
+    "attitude": {
+      "lines": [
+        "I'm not arguing, I'm just explaining why I'm right",
+        "my standards have standards",
+        "too glam to give a damn",
+        "she's a 10 and she knows it",
+        "I didn't come to compete, I came to take over",
+        "be a voice, not an echo",
+        "my attitude isn't a mood, it's a lifestyle",
+        "throwing shade takes energy — I simply glow past it",
+        "know your worth, then add tax",
+        "the audacity to be this unbothered",
+        "humble with a hint of Kanye",
+        "I run on confidence and little else",
+        "they didn't raise no quitter",
+        "expensive energy, don't waste it"
+      ],
+      "closers": [
+        "👑 period.",
+        "unbothered and thriving 🖤",
+        "take notes 📝",
+        "that girl era, no refunds 💅",
+        "and we move 💨",
+        "classy but I keep the receipts 🧾"
+      ]
+    },
+    "cute": {
+      "lines": [
+        "my excuse is that it's basically pumpkin spice season",
+        "I put my heart in little pink bows and called it a day",
+        "we're just two cuties existing loudly",
+        "somebody hand me a strawberry milk and a compliment",
+        "cozy socks, softer heart",
+        "being adorable is honestly exhausting",
+        "I'm just a girl standing in front of a salad, asking for dessert",
+        "glitter on my mind and nowhere to be",
+        "my love language is sharing my last bite (okay, half)",
+        "I dressed soft today, feelings included",
+        "the bows in my life outnumber my problems",
+        "too cute to be stressed, too blessed to be pressed",
+        "diary entry: today I was my favourite plushie",
+        "life's short, buy the mini backpack"
+      ],
+      "closers": [
+        "🎀🩷",
+        "cuteness overload, sorry not sorry 🥺",
+        "softest girl in the group chat 🌷",
+        "vibes: sugar, spice, everything nice ✨",
+        "keep it cute 🫶",
+        "angel energy only 👼"
+      ]
+    },
+    "ootd": {
+      "lines": [
+        "today's outfit: comfort had a meeting with cute and they agreed",
+        "wearing this once was never the plan",
+        "the fit was feeling itself and honestly, fair",
+        "my closet said 'pick a struggle' and I picked neither",
+        "dressed like the day owes me something",
+        "these earrings carry the entire look, thank them",
+        "one sundress away from starting a new era",
+        "getting dressed is my favourite form of self-expression",
+        "the dupatta did most of the work tbh",
+        "OOTD but make it effortless",
+        "outfit repeat? we don't know her",
+        "my bodycon era said 'watch this'",
+        "the kurta said festive and the sneakers said practical — balance",
+        "every good day starts with a good outfit decision"
+      ],
+      "closers": [
+        "👗✨",
+        "drop a 🔥 if you'd wear this",
+        "styling details in the comments 💬",
+        "fashion is my love language 🧵",
+        "desi girl in her fashion era 🪭",
+        "fit so good I almost missed my bus 💅"
+      ]
+    },
+    "travel": {
+      "lines": [
+        "collecting sunsets instead of souvenirs",
+        "wander often, wonder always",
+        "this view lived rent-free in my head all week",
+        "we got lost and it was the best part",
+        "packing light, collecting moments",
+        "the mountains called and I obviously answered",
+        "salt water heals everything (yes, everything)",
+        "not all who wander are lost — some are just very bad with maps",
+        "my happy place has a pin on it now",
+        "the plane ticket was cheaper than therapy",
+        "roaming because home is wherever my playlist hits different",
+        "this street corner deserved a photoshoot honestly",
+        "another day, another jaw-dropping view",
+        "leave a little sparkle everywhere you go"
+      ],
+      "closers": [
+        "🌍✈️",
+        "save this for your next trip 📍",
+        "currently accepting travel buddies 🎒",
+        "wanderlust status: fully booked 🗺️",
+        "take me back 🥺🌸",
+        "up next: everywhere 💫"
+      ]
+    },
+    "selflove": {
+      "lines": [
+        "dated myself today, 10/10 would recommend",
+        "becoming her was never the plan, but here we are, thriving",
+        "my peace is expensive and I'm worth it",
+        "watering my own garden these days",
+        "the glow-up was internal first",
+        "choosing me is the softest rebellion",
+        "journaling my way into a better mood",
+        "you can't pour from an empty cup, so I refilled",
+        "meeting myself where I'm at, no apologies",
+        "the girl I was would be so proud of the woman I am",
+        "protecting my energy like it pays rent (it does)",
+        "romanticizing the small ordinary things",
+        "slow mornings and honest mirrors",
+        "my soft era is going great, thanks for asking"
+      ],
+      "closers": [
+        "🤍🌿",
+        "breathe in, bloom out 🌱",
+        "be gentle with yourself today 🫂",
+        "growth looks good on us 🌸",
+        "chapter: becoming ✨",
+        "soft life, strong boundaries 🕊️"
+      ]
+    },
+    "general": {
+      "lines": [
+        "the little things are the big things actually",
+        "today's forecast: 100% chance of vibes",
+        "we're embracing the ordinary magic today",
+        "just out here making memories nobody asked me to make",
+        "life lately: soft, slow, and mine",
+        "one of those days where everything just clicked",
+        "keeping the bar low and the joy high",
+        "a small reminder that you're doing better than you think",
+        "collecting moments like they're limited edition",
+        "the daily update nobody asked for",
+        "here's to the days that don't need a filter",
+        "my life isn't perfect but the lighting was",
+        "romanticizing my routine until it loves me back",
+        "proof that ordinary days can feel cinematic"
+      ],
+      "closers": [
+        "✨🤍",
+        "more of this energy please 🙏",
+        "file under: days worth remembering 📁",
+        "that's the whole post, thanks for coming 🫶",
+        "grateful mode: activated 🌿",
+        "same time tomorrow? 🌷"
+      ]
+    }
+  }
+}

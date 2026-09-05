@@ -45,6 +45,44 @@ def load_bank() -> dict:
         return json.load(f)
 
 
+def load_parts() -> dict | None:
+    """Combinatorial caption parts, or None when absent/corrupt — the
+    composer falls back to the static bank caption either way."""
+    try:
+        with open(CONTENT_DIR / "caption_parts.json", encoding="utf-8") as f:
+            parts = json.load(f)
+        if parts.get("openers") and parts.get("vibes"):
+            return parts
+    except Exception:
+        pass
+    return None
+
+
+def compose_caption(vibe: str, date: dt.date) -> str | None:
+    """Opener x line x closer composed for (vibe, date), or None.
+
+    10 openers x 14 lines x 6 closers = 840 combos per vibe, so effective
+    caption variety is far beyond the 15 static lines — the daily refresh
+    workflow's job is keeping these parts feeling current. Deterministic:
+    same (vibe, date) always composes identically, so re-runs never
+    rewrite a published caption. None on any failure (missing/corrupt
+    parts file, unknown vibe) — callers fall back to the static bank.
+    """
+    parts = load_parts()
+    if not parts:
+        return None
+    entry = (parts["vibes"].get(vibe)
+             or parts["vibes"].get("general"))
+    if not entry:
+        return None
+    key = f"{date.isoformat()}:{vibe}"
+    rng = random.Random(key)
+    opener = rng.choice(parts["openers"])
+    line = rng.choice(entry["lines"])
+    closer = rng.choice(entry["closers"])
+    return f"{opener} {line} {closer}"
+
+
 def vibe_from_filename(filename: str) -> str:
     """`attitude3.mp4` -> `attitude`; unknown -> `general`."""
     stem = filename.rsplit(".", 1)[0].lower().strip()

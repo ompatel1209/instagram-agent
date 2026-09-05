@@ -14,6 +14,11 @@ Covers the Feature 1 contract:
   - the uploads-tier hook (main.run_upload_day's tag assembly) and the
     quote-fallback hook produce formatted captions with a tag line
 
+Covers the Feature 2a contract (compose_caption):
+  - composed captions are deterministic per (date, vibe) and rotate daily
+  - parts come from the right vibe entry; unknown vibes borrow `general`
+  - corrupt parts file degrades to None -> the static bank caption
+
 Run:  python3 tests/test_trending.py     (exit 0 = all passed)
 """
 import datetime as dt
@@ -183,6 +188,88 @@ def merged_tag_count_stays_under_ig_limit():
             ["motivation", "dailyquotes", "inspiration", "growthmindset",
              "selfimprovement", "dailymotivation"])
         assert 12 <= len(tags) <= 30, f"{vibe}: {len(tags)} tags"
+
+
+# ----------------------------------------------------- compose_caption (2a)
+@test
+def composed_caption_is_deterministic():
+    a = captions_mod.compose_caption("selfie", DATE)
+    b = captions_mod.compose_caption("selfie", DATE)
+    assert a and a == b, "same (date, vibe) must compose identically"
+
+
+@test
+def composed_caption_rotates_day_to_day():
+    a = captions_mod.compose_caption("selfie", DATE)
+    b = captions_mod.compose_caption("selfie", DATE + dt.timedelta(days=1))
+    assert a != b, "composition must move day to day"
+
+
+@test
+def composed_caption_uses_the_vibes_own_parts():
+    parts = captions_mod.load_parts()
+    composed = captions_mod.compose_caption("ootd", DATE)
+    lines = parts["vibes"]["ootd"]["lines"]
+    assert any(line in composed for line in lines), \
+        "no ootd line present in composed caption"
+
+
+@test
+def unknown_vibe_falls_back_to_general_parts():
+    parts = captions_mod.load_parts()
+    composed = captions_mod.compose_caption("party", DATE)
+    assert composed, "unknown vibe should still compose via general"
+    lines = parts["vibes"]["general"]["lines"]
+    assert any(line in composed for line in lines)
+
+
+@test
+def composed_caption_shape():
+    composed = captions_mod.compose_caption("cute", DATE)
+    assert composed and composed[0] not in "!", composed  # sentence-like
+    # opener + line + closer = the parts actually joined
+    parts = captions_mod.load_parts()
+    for group in (parts["openers"],
+                  parts["vibes"]["cute"]["lines"],
+                  parts["vibes"]["cute"]["closers"]):
+        assert any(part in composed for part in group), \
+            f"missing a part from a group: {composed}"
+
+
+@test
+def corrupt_parts_file_degrades_to_none():
+    parts_path = CONTENT_DIR / "caption_parts.json"
+    original = parts_path.read_text(encoding="utf-8")
+    try:
+        parts_path.write_text("{ not json !!", encoding="utf-8")
+        assert captions_mod.compose_caption("cute", DATE) is None
+        # The uploads-tier contract: None means the static bank caption.
+        picked = captions_mod.pick(BANK, "cute", DATE)
+        line = captions_mod.compose_caption("cute", DATE) or picked["caption"]
+        assert line == picked["caption"]
+    finally:
+        parts_path.write_text(original, encoding="utf-8")
+
+
+@test
+def missing_parts_file_degrades_to_none():
+    parts_path = CONTENT_DIR / "caption_parts.json"
+    original = parts_path.read_text(encoding="utf-8")
+    parts_path.unlink()
+    try:
+        assert captions_mod.compose_caption("travel", DATE) is None
+    finally:
+        parts_path.write_text(original, encoding="utf-8")
+
+
+@test
+def uploads_tier_prefers_composed_line():
+    # The exact main.py hook: compose first, static bank only as fallback.
+    picked = captions_mod.pick(BANK, "selfie", DATE)
+    line = captions_mod.compose_caption("selfie", DATE) or picked["caption"]
+    assert line == captions_mod.compose_caption("selfie", DATE)
+    assert line != picked["caption"], \
+        "composed line should differ from the static bank caption"
 
 
 # ---------------------------------------------------------------------- runner

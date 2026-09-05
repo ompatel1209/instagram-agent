@@ -146,6 +146,18 @@
         "photographer": "Cup of  Couple"
       },
       "publish_reel": true
+    },
+    "2026-09-09": {
+      "token_refreshed": true,
+      "media_of_day": "0selfie1.mp4",
+      "published_media": {
+        "feed": "17944910973335882",
+        "reel": "17944910973335882",
+        "story": "18126136690824440"
+      },
+      "publish_feed": true,
+      "publish_reel": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -153,7 +165,8 @@
     "0travel.mp4",
     "218a6ed45b70d6455c297e7663fe66a8.jpg",
     "2f86be10f2bff0714eb8586ca5e5bdc5.jpg",
-    "339713e9dde860f30fe6e5119e0c6571.jpg"
+    "339713e9dde860f30fe6e5119e0c6571.jpg",
+    "0selfie1.mp4"
   ],
   "engagement": {
     "permissions_missing": [],

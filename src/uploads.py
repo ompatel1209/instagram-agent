@@ -9,6 +9,7 @@ unposted file. Photos publish as feed post + Story; videos as Reels + Story.
 import json
 import os
 import pathlib
+import urllib.parse
 
 
 def _repo_slug() -> str:
@@ -76,6 +77,9 @@ def next_file(posted_files: list[str]) -> str | None:
 
 
 def raw_url(filename: str, cfg: dict) -> str:
-    """Public raw.githubusercontent URL for a queued upload."""
+    """Public raw.githubusercontent URL for a queued upload. The filename is
+    percent-encoded — queue names may contain characters that are not
+    URL-safe (e.g. spaces), which Meta's fetcher would reject."""
     return (f"https://raw.githubusercontent.com/{cfg['repo_owner']}/"
-            f"{cfg['repo_name']}/media/uploads/{filename}")
+            f"{cfg['repo_name']}/media/uploads/"
+            f"{urllib.parse.quote(filename)}")

@@ -421,7 +421,7 @@ def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
         log(f"{date_str}: feed + story published, reel missing — gap-filling.")
         _reel_gapfill(cfg, date, date_str, st, out_dir)
         _note_token(cfg, st, date_str)
-        return _day_complete_exit(st, date_str, "reel gap-fill")
+        return _day_complete_exit(cfg, st, date_str, "reel gap-fill")
 
     # --- Content tiers: uploads queue -> stock photos -> quote/tip --------------
     try:
@@ -435,7 +435,7 @@ def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
         _reel_gapfill(cfg, date, date_str, st, out_dir)
         log(f"{date_str}: uploads tier done.")
         _note_token(cfg, st, date_str)
-        return _day_complete_exit(st, date_str, "uploads")
+        return _day_complete_exit(cfg, st, date_str, "uploads")
     if rc == -1:
         log("uploads queue empty — trying the stock-photo tier")
         try:
@@ -446,7 +446,7 @@ def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
         if stock_rc == 0:
             _reel_gapfill(cfg, date, date_str, st, out_dir)
             _note_token(cfg, st, date_str)
-            return _day_complete_exit(st, date_str, "stock")
+            return _day_complete_exit(cfg, st, date_str, "stock")
         if stock_rc == 1:
             _note_token(cfg, st, date_str)
             log(f"{date_str}: stock day incomplete — safety re-run will retry.")
@@ -460,7 +460,7 @@ def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
                 log(f"{date_str}: already complete after fallback check.")
                 return 0
             _reel_gapfill(cfg, date, date_str, st, out_dir)
-            return _day_complete_exit(st, date_str, "fallback check")
+            return _day_complete_exit(cfg, st, date_str, "fallback check")
     else:
         # Partial failure: the safety re-run retries this same file.
         _note_token(cfg, st, date_str)
@@ -496,7 +496,7 @@ def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
     _note_token(cfg, st, date_str)
 
     # --- Exit code reflects completeness ---------------------------------------
-    return _day_complete_exit(st, date_str, "quote fallback")
+    return _day_complete_exit(cfg, st, date_str, "quote fallback")
 
 
 def _reel_gapfill(cfg: dict, date: dt.date, date_str: str, st: dict,
@@ -521,11 +521,23 @@ def _reel_gapfill(cfg: dict, date: dt.date, date_str: str, st: dict,
     return ok
 
 
-def _day_complete_exit(st: dict, date_str: str, label: str) -> int:
-    """0 only when feed, story AND reel are all published — a missing reel
+def _day_complete_exit(cfg: dict, st: dict, date_str: str, label: str) -> int:
+    """0 only when the day's slots are all published.
+
+    With a Pexels key, that means feed + story AND reel — a missing reel
     exits 1 so the safety re-run retries (alerts only watch feed/story, so
-    this never opens a spam issue)."""
-    if state.both_published(st, date_str) and state.done(st, date_str, "publish_reel"):
+    this never opens a spam issue). Without a key the reel tier is disabled
+    (no stock videos/music), so feed + story alone complete the day: a
+    photo-only day must not exit 1 and retry forever at every safety re-run."""
+    if not state.both_published(st, date_str):
+        log(f"{date_str}: incomplete ({label}: feed or story missing) — "
+            "safety re-run will retry.")
+        return 1
+    if not cfg.get("pexels_api_key"):
+        log(f"{date_str}: complete ({label}: feed + story published, "
+            "reel tier disabled).")
+        return 0
+    if state.done(st, date_str, "publish_reel"):
         log(f"{date_str}: complete ({label}: feed + story + reel published).")
         return 0
     log(f"{date_str}: reel missing — safety re-run will retry it.")

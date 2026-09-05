@@ -29,7 +29,7 @@ import time
 import requests as _requests
 
 from . import alerts, captions as captions_mod
-from . import content, instagram, pexels, reel, render, state, token, uploads
+from . import content, instagram, pexels, reel, render, state, token, trending, uploads
 from .config import PREVIEW_DIR, ROOT, load_config, media_url
 
 
@@ -109,7 +109,12 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
     vibe = captions_mod.vibe_from_filename(filename)
     is_video = captions_mod.is_video(filename)
     bank = captions_mod.load_bank()
-    caption = captions_mod.caption_text(bank, vibe, date, cfg["hashtags"])
+    picked = captions_mod.pick(bank, vibe, date)
+    # Static vibe bank first, then rotated trending tags (deterministic
+    # per date, so re-runs never rewrite a published caption).
+    tags = trending.caption_tags(
+        vibe, date, picked["hashtags"], cfg["hashtags"])
+    caption = captions_mod.format_caption(picked["caption"], tags)
     log(f"upload: {filename} (vibe: {vibe}, {'video' if is_video else 'photo'})")
 
     src_url = uploads.raw_url(filename, cfg)
@@ -548,11 +553,13 @@ def _publish_image_pair(cfg: dict, st: dict, date_str: str,
                         picked: dict) -> None:
     """Publish feed + story containers from the rendered quote/tip JPGs."""
     if not state.done(st, date_str, "publish_feed"):
+        quote_tags = trending.caption_tags(
+            "general", date, cfg["hashtags"], [])
         try:
             cid = instagram.create_container(
                 cfg["access_token"], cfg["ig_user_id"],
                 media_url(cfg, date_str, "feed"),
-                caption=content.caption_for(picked["quote"], cfg["hashtags"]),
+                caption=content.caption_for(picked["quote"], quote_tags),
             )
             instagram.wait_finished(cfg["access_token"], cid)
             mid = instagram.publish(cfg["access_token"], cfg["ig_user_id"], cid)

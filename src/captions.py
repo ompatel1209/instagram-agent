@@ -66,11 +66,17 @@ def pick(bank: dict, vibe: str, date: dt.date) -> dict:
     return {"caption": caption, "hashtags": entries["hashtags"], "rng": rng}
 
 
+def format_caption(caption: str, tags: list[str]) -> str:
+    """Caption line + formatted hashtag line — the single formatting point
+    every caption path goes through (so trending tags merge in cleanly)."""
+    lines = [caption]
+    if tags:
+        lines += ["", " ".join(f"#{t.lstrip('#').lower()}" for t in tags)]
+    return "\n".join(lines)
+
+
 def caption_text(bank: dict, vibe: str, date: dt.date, extra_tags: list[str]) -> str:
     """Full caption body: girly line + vibe hashtags (+ optional extras)."""
     picked = pick(bank, vibe, date)
     tags = list(picked["hashtags"]) + [t for t in extra_tags if t]
-    lines = [picked["caption"]]
-    if tags:
-        lines += ["", " ".join(f"#{t.lstrip('#').lower()}" for t in tags)]
-    return "\n".join(lines)
+    return format_caption(picked["caption"], tags)

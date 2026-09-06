@@ -171,5 +171,24 @@
   "engagement": {
     "permissions_missing": [],
     "last_run": "0 comment replies, 0 DM replies"
+  },
+  "refresh": {
+    "date": "2026-09-06",
+    "trending_now": [
+      "hiddenplaces",
+      "peacefulmind",
+      "littlethings",
+      "feelingmyself",
+      "viralreels"
+    ],
+    "queue_remaining": 57,
+    "next_file": "2-attitude-02.mp4",
+    "vibe": "attitude",
+    "is_video": true,
+    "music_track": {
+      "id": "candle-flame-c",
+      "mood": "candle"
+    },
+    "token_days_left": null
   }
 }

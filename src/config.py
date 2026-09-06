@@ -22,6 +22,9 @@ def load_config() -> dict:
     cfg["gh_pat"] = os.environ.get("GH_PAT", "")
     # Stock-photo tier (Pexels). Empty key = tier silently disabled.
     cfg["pexels_api_key"] = os.environ.get("PEXELS_API_KEY", "")
+    # AI reply voice (NVIDIA NIM). Empty key = AI tier silently disabled,
+    # engagement falls back to the replies.json bank.
+    cfg["nvidia_api_key"] = os.environ.get("NVIDIA_API_KEY", "")
 
     # GitHub repo coordinates, used to build public media URLs and push paths.
     cfg.setdefault("repo_owner", os.environ.get("GITHUB_REPOSITORY_OWNER", ""))

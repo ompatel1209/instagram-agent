@@ -8,9 +8,14 @@ Two flows, both keyword-themed and non-fatal (the reel.py contract):
     incoming (and within the 24h window) -> themed reply -> record,
     at most one reply per thread per day.
 
-Reply text comes from content/replies.json — love / friendship / general
-banks in the same girly voice as captions.json. The pick is deterministic
-per comment/thread id, so a crash + re-run never changes what we said.
+Reply voice: AI-first with a deterministic bank fallback. When the NVIDIA
+NIM key is configured (NVIDIA_API_KEY -> cfg["nvidia_api_key"]), every
+comment/DM is answered by the model (src/ai.py) in a per-thread
+personality that mirrors the sender's language, with the thread's prior
+turns as DM memory. Any model failure — or no key at all — falls back to
+content/replies.json (love / friendship / general banks in the same
+girly voice as captions.json). Both paths pick deterministically per
+comment/thread id, so a crash + re-run never changes what we said.
 
 Every permission failure is recorded in state.json under
 "engagement" -> "permissions_missing" and reconciled into exactly one
@@ -21,7 +26,7 @@ import datetime as dt
 import json
 import random
 
-from . import alerts, instagram, state
+from . import ai, alerts, instagram, state
 from .config import CONTENT_DIR, load_config
 
 # Bounds so an hourly run can never spam: at most this many replies per run.
@@ -207,11 +212,18 @@ def reply_to_comments(cfg: dict, st: dict, bank: dict,
             text = str(c.get("text", ""))
             cat = categorize(bank, text)
             rotation = _pick_replies(cat, "comment_replies", cid)
-            if not rotation:
-                continue
-            # rotation is seeded by the comment id, so every comment gets
-            # its own (stable, idempotent) pick from the bank.
-            reply = rotation[0]
+            # AI-first: the model answers in a per-comment personality that
+            # mirrors the comment's language. The bank rotation (seeded by
+            # the comment id — stable, idempotent) is only the fallback for
+            # when the model is unavailable.
+            reply = ai.generate_reply(
+                ai.personality_for(cid, cat["key"]), "auto", text,
+                api_key=cfg.get("nvidia_api_key"), st=st)
+            reply = ai.tidy(reply, "comment") if reply is not None else None
+            if not reply:
+                if not rotation:
+                    continue
+                reply = rotation[0]
             try:
                 instagram.reply_to_comment(token, cid, reply)
             except instagram.InstagramError as e:
@@ -264,6 +276,27 @@ def _participant_igsid(thread: dict, own: set[str]) -> str | None:
     return None
 
 
+def _thread_history(msgs: list, last: dict,
+                    own: set[str]) -> list[tuple[str, str]]:
+    """Prior turns of a thread as [(speaker, text)], oldest-first.
+
+    The `last` message (the incoming one being answered) is excluded —
+    generate_reply appends it fresh. Our own messages are "assistant" so
+    the model continues the conversation instead of amnesia-answering."""
+    ordered = sorted(msgs, key=lambda m: str(m.get("created_time", "")))
+    history: list[tuple[str, str]] = []
+    for m in ordered:
+        if m is last:
+            continue
+        speaker = (m.get("from", {}) or {}).get("username", "")
+        role = ("assistant"
+                if str(speaker).lstrip("@").lower() in own else "user")
+        text = str(m.get("text", "")).strip()
+        if text:
+            history.append((role, text))
+    return history
+
+
 def answer_dms(cfg: dict, st: dict, bank: dict,
                today_str: str) -> tuple[int, str | None]:
     """Reply to unanswered incoming DMs (within 24h). Returns (sent, perm)."""
@@ -309,10 +342,22 @@ def answer_dms(cfg: dict, st: dict, bank: dict,
 
         cat = categorize(bank, str(last.get("text", "")))
         rotation = _pick_replies(cat, "dm_replies", tid)
-        if not rotation:
-            continue
+        # AI-first with DM memory: the model sees the thread's prior turns
+        # and answers in a per-thread personality that mirrors the sender's
+        # language. The bank rotation (seeded by the thread id) is only the
+        # fallback for when the model is unavailable.
+        reply = ai.generate_reply(
+            ai.personality_for(tid, cat["key"]), "auto",
+            str(last.get("text", "")),
+            history=_thread_history(msgs, last, own),
+            api_key=cfg.get("nvidia_api_key"), st=st)
+        reply = ai.tidy(reply) if reply is not None else None
+        if not reply:
+            if not rotation:
+                continue
+            reply = rotation[0]
         try:
-            instagram.send_message(token, cfg["ig_user_id"], igsid, rotation[0])
+            instagram.send_message(token, cfg["ig_user_id"], igsid, reply)
         except instagram.InstagramError as e:
             msg = str(e)
             _note(st, today_str, f"reply to thread {tid} failed — {msg}")
@@ -325,7 +370,7 @@ def answer_dms(cfg: dict, st: dict, bank: dict,
         done_today.add(tid)
         count += 1
         print(f"engagement: answered DM thread {tid} "
-              f"({cat['key']}) — {rotation[0][:40]}…")
+              f"({cat['key']}) — {reply[:40]}…")
     return count, None
 
 

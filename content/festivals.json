@@ -1,0 +1,233 @@
+{
+  "_readme": "Festival calendar for @whoisaaniiiya. Entries with 'date' are fixed (same date every year, MM-DD). Lunar/moving festivals carry 'years': explicit ISO dates per year (extend when a new year approaches — lookup degrades gracefully to no-festival otherwise). Lunar dates are panchang-based and can shift a day by region/moon-sighting; the years map makes any fix a one-line edit. On a festival day the greeting line leads the caption (src/festivals.py decorates) and the festival tags ride right behind the static bank (trending.caption_tags). Line choice is deterministic per (date, id) so re-runs never rewrite a published caption. 'vibe' is informational (day-plan log) — the day's actual media keeps its own vibe. First matching entry wins on a same-day collision, so keep majors listed first. Never edit while a run is in flight.",
+  "festivals": [
+    {
+      "id": "new-year",
+      "name": "New Year",
+      "date": "01-01",
+      "vibe": "general",
+      "lines": [
+        "New year, same me — just leveled up ✨",
+        "365 new pages. Let's write a good one 📖✨",
+        "New year, new energy, same sparkle ✨"
+      ],
+      "tags": ["happynewyear", "newyearvibes", "freshstart", "newbeginnings"]
+    },
+    {
+      "id": "republic-day",
+      "name": "Republic Day",
+      "date": "01-26",
+      "vibe": "attitude",
+      "lines": [
+        "Tricolor heart, always 🇮🇳 Happy Republic Day!",
+        "Free, fearless and fully Indian 🇮🇳 Happy Republic Day!",
+        "Saluting the republic in my own style 🇮🇳"
+      ],
+      "tags": ["republicday", "republicdayindia", "proudindian", "tricolor"]
+    },
+    {
+      "id": "valentines",
+      "name": "Valentine's Day",
+      "date": "02-14",
+      "vibe": "selflove",
+      "lines": [
+        "Love starts with you. Happy Valentine's 💕",
+        "Galentine's > Valentine's 💕 Celebrating me today",
+        "Roses are red, my vibe is pink 💕 Happy Valentine's"
+      ],
+      "tags": ["valentinesday", "valentines", "hearts", "love"]
+    },
+    {
+      "id": "womens-day",
+      "name": "International Women's Day",
+      "date": "03-08",
+      "vibe": "attitude",
+      "lines": [
+        "Here's to strong women — may we know them, be them, raise them 💪✨",
+        "Soft yet unbreakable. Happy Women's Day 🌸",
+        "You are not just a flower, you're the whole garden. Happy Women's Day 🌷"
+      ],
+      "tags": ["internationalwomensday", "womensday", "strongwomen", "girlpower"]
+    },
+    {
+      "id": "holi",
+      "name": "Holi",
+      "years": {"2026": "2026-03-04", "2027": "2027-03-23", "2028": "2028-03-11"},
+      "vibe": "cute",
+      "lines": [
+        "Bura na maano, it's Holi! 🎨 Happy Holi!",
+        "Colours everywhere, including my camera roll 🎨 Happy Holi!",
+        "Pink cheeks, pink gulal, pink heart 🌸 Happy Holi!"
+      ],
+      "tags": ["happyholi", "holivibes", "holicelebration", "colours"]
+    },
+    {
+      "id": "eid-al-fitr",
+      "name": "Eid al-Fitr",
+      "years": {"2026": "2026-03-20", "2027": "2027-03-10", "2028": "2028-02-27"},
+      "vibe": "general",
+      "lines": [
+        "Eid Mubarak! Wishing you peace, love and lots of meethi 🌙✨",
+        "Chand pe noor, dil mein khushi — Eid Mubarak 🌙",
+        "New moon, new blessings. Eid Mubarak to everyone celebrating 🌙"
+      ],
+      "tags": ["eidmubarak", "eidulfitr", "blessed", "celebration"]
+    },
+    {
+      "id": "eid-al-adha",
+      "name": "Eid al-Adha",
+      "years": {"2026": "2026-05-27", "2027": "2027-05-17", "2028": "2028-05-05"},
+      "vibe": "general",
+      "lines": [
+        "Eid Mubarak! May your sacrifices be seen and your heart stay full 🌙",
+        "Bakrid blessings to you and yours — Eid Mubarak 🌙",
+        "Faith, family, festive food — Eid al-Adha Mubarak 🌙"
+      ],
+      "tags": ["eidmubarak", "eiduladha", "bakraeid", "blessed"]
+    },
+    {
+      "id": "independence-day",
+      "name": "Independence Day",
+      "date": "08-15",
+      "vibe": "attitude",
+      "lines": [
+        "Freedom looks good on us 🇮🇳 Happy Independence Day!",
+        "Born in a free India, living my best life 🇮🇳",
+        "Azadi ka hai din — Happy Independence Day 🇮🇳"
+      ],
+      "tags": ["independenceday", "independencedayindia", "happyindependenceday", "proudindian"]
+    },
+    {
+      "id": "raksha-bandhan",
+      "name": "Raksha Bandhan",
+      "years": {"2026": "2026-08-28", "2027": "2027-08-17", "2028": "2028-08-05"},
+      "vibe": "cute",
+      "lines": [
+        "Thread on the wrist, best friend for life 🪢 Happy Raksha Bandhan!",
+        "The boy who owes me half his pocket money — Happy Rakhi! 🪢",
+        "Lifelong bodyguard, courtesy of one thread 🪢 Happy Raksha Bandhan!"
+      ],
+      "tags": ["rakshabandhan", "rakhi", "rakhispecial", "siblinglove"]
+    },
+    {
+      "id": "janmashtami",
+      "name": "Janmashtami",
+      "years": {"2026": "2026-09-04", "2027": "2027-08-25", "2028": "2028-09-13"},
+      "vibe": "general",
+      "lines": [
+        "Radhe Radhe! Happy Janmashtami 🦚✨",
+        "Makhan, mor pankh and devotion — Happy Janmashtami 🦚",
+        "Jai Shri Krishna! Happy Janmashtami ✨"
+      ],
+      "tags": ["janmashtami", "krishnajanmashtami", "jaishreekrishna", "radheradhe"]
+    },
+    {
+      "id": "ganesh-chaturthi",
+      "name": "Ganesh Chaturthi",
+      "years": {"2026": "2026-09-14", "2027": "2027-09-03", "2028": "2028-08-22"},
+      "vibe": "cute",
+      "lines": [
+        "Ganpati Bappa Morya! 🌸 Happy Ganesh Chaturthi",
+        "Modaks, marigolds and Bappa's blessings 🌼 Happy Ganesh Chaturthi",
+        "New season, new Bappa, same pure joy 🌸 Happy Ganesh Chaturthi"
+      ],
+      "tags": ["ganeshchaturthi", "ganpatibappamorya", "happyganeshchaturthi", "bappa"]
+    },
+    {
+      "id": "navratri",
+      "name": "Navratri",
+      "years": {"2026": "2026-10-11", "2027": "2027-10-01", "2028": "2028-09-19"},
+      "vibe": "cute",
+      "lines": [
+        "Nine nights of garba, glitter and goddess energy ✨ Jai Mata Di!",
+        "Navratri mode: chaniya choli on, dandiya ready ✨",
+        "Shakti season begins. Happy Navratri ✨"
+      ],
+      "tags": ["navratri", "garba", "dandiya", "jaimatadi"]
+    },
+    {
+      "id": "durga-ashtami",
+      "name": "Durga Ashtami",
+      "years": {"2026": "2026-10-18", "2027": "2027-10-08", "2028": "2028-09-26"},
+      "vibe": "attitude",
+      "lines": [
+        "Shakti in my veins. Happy Durga Ashtami 🔱",
+        "Maa Durga's girl — soft outside, steel inside 🔱 Happy Ashtami",
+        "Nine nights, one goddess, endless power. Happy Ashtami 🔱"
+      ],
+      "tags": ["durgaashtami", "durgapuja", "maadurga", "shakti"]
+    },
+    {
+      "id": "karva-chauth",
+      "name": "Karva Chauth",
+      "years": {"2026": "2026-10-29", "2027": "2027-10-19", "2028": "2028-10-07"},
+      "vibe": "ootd",
+      "lines": [
+        "Sargi sunrises and moonlit waits — Happy Karva Chauth 🌙",
+        "Red saree, mehendi hands, moon at last 🌙 Happy Karva Chauth",
+        "The prettiest fast of the year 🌙 Happy Karva Chauth"
+      ],
+      "tags": ["karvachauth", "karvachauthspecial", "mehendi", "sargi"]
+    },
+    {
+      "id": "dussehra",
+      "name": "Dussehra",
+      "years": {"2026": "2026-10-20", "2027": "2027-10-10", "2028": "2028-09-28"},
+      "vibe": "attitude",
+      "lines": [
+        "Good over evil, always. Happy Dussehra 🔥",
+        "Burn the doubts, keep the lessons. Dussehra vibes 🔥",
+        "Every Ravana falls eventually. Happy Dussehra 🔥"
+      ],
+      "tags": ["dussehra", "vijayadashami", "goodoverevil", "festivalvibes"]
+    },
+    {
+      "id": "diwali",
+      "name": "Diwali",
+      "years": {"2026": "2026-11-08", "2027": "2027-10-29", "2028": "2028-10-17"},
+      "vibe": "ootd",
+      "lines": [
+        "May your Diwali be as bright as your smile ✨ Happy Diwali!",
+        "Diyas lit, heart full. Happy Diwali 🪔",
+        "Festival of lights, season of sparkle. Happy Diwali ✨🪔"
+      ],
+      "tags": ["happydiwali", "diwalivibes", "festivaloflights", "diwalicelebration"]
+    },
+    {
+      "id": "bhai-dooj",
+      "name": "Bhai Dooj",
+      "years": {"2026": "2026-11-10", "2027": "2027-10-31", "2028": "2028-10-19"},
+      "vibe": "cute",
+      "lines": [
+        "To the brother who annoys me and protects me in equal measure 🪢 Happy Bhai Dooj!",
+        "A tilak, a smile, a lifetime of memories. Happy Bhai Dooj!",
+        "Siblings: part enemy, part best friend. Happy Bhai Dooj!"
+      ],
+      "tags": ["bhaidooj", "siblinglove", "familyfirst", "bhaiyadooj"]
+    },
+    {
+      "id": "christmas",
+      "name": "Christmas",
+      "date": "12-25",
+      "vibe": "cute",
+      "lines": [
+        "Sweater weather, sparkly lights, cozy nights 🎄 Merry Christmas!",
+        "May your days be merry and bright 🎄 Merry Christmas!",
+        "All I want for Christmas is carbs and glitter 🎄✨"
+      ],
+      "tags": ["merrychristmas", "christmasvibes", "cozyseason", "winterwonderland"]
+    },
+    {
+      "id": "new-years-eve",
+      "name": "New Year's Eve",
+      "date": "12-31",
+      "vibe": "attitude",
+      "lines": [
+        "Last day of the year, best outfit of the month ✨",
+        "See you at midnight, better than ever ✨",
+        "Ending the year on a high note 🥂✨"
+      ],
+      "tags": ["newyearseve", "yearsend", "partytime", "newyearvibes"]
+    }
+  ]
+}

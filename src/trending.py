@@ -101,12 +101,18 @@ def merge_tags(static_tags: list[str], trending: list[str],
 
 
 def caption_tags(vibe: str, date: dt.date, static_tags: list[str],
-                 extra_tags: list[str] | None = None) -> list[str]:
-    """Full tag list for a caption: static bank + trending + cfg extras.
+                 extra_tags: list[str] | None = None,
+                 fest_tags: list[str] | None = None) -> list[str]:
+    """Full tag list for a caption: static bank + festival + trending + extras.
 
     This is the single entry point caption paths call — it keeps trending
     injection, static-bank precedence, dedupe, and the 30-tag cap in one
     place so every tier (uploads/stock/quote) formats tags identically.
+
+    fest_tags (the day's festival tags, festivals.festival_tags) ride RIGHT
+    BEHIND the static vibe bank, ahead of the day's trending window — on a
+    festival day the calendar's tags get first claim on the caption.
     """
     trending = pick_trending(vibe, date)
-    return merge_tags(static_tags, trending + list(extra_tags or []))
+    merged = list(fest_tags or []) + trending + list(extra_tags or [])
+    return merge_tags(static_tags, merged)

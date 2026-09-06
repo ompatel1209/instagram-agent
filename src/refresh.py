@@ -30,7 +30,7 @@ import os
 import sys
 
 from . import captions as captions_mod
-from . import music, state, trending, uploads
+from . import festivals, music, state, trending, uploads
 
 IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
 
@@ -108,6 +108,7 @@ def run() -> int:
         "is_video": None,
         "music_track": None,
         "token_days_left": None,
+        "festival": None,
     }
 
     # --- 1) fresh trending_now window ---------------------------------------
@@ -160,6 +161,21 @@ def run() -> int:
             print(f"refresh: music pick — {track['id']} ({track['mood']})")
     except Exception as e:
         state.note_failure(st, date_str, "refresh", f"music plan failed — {e}")
+
+    # Festival day-plan line: informational (the calendar's vibe is a hint,
+    # the day's media keeps its own); the greeting + tags flow through
+    # main.py's caption assembly regardless of this note.
+    try:
+        fest = festivals.festival_for(date)
+        if fest:
+            rec["festival"] = {"id": fest.get("id"),
+                               "name": fest.get("name"),
+                               "vibe": fest.get("vibe")}
+            print(f"refresh: festival — {fest['name']} "
+                  f"({fest.get('vibe', 'general')}) — greeting + tags "
+                  f"lead today's captions")
+    except Exception as e:
+        state.note_failure(st, date_str, "refresh", f"festival plan failed — {e}")
 
     try:
         days = st.get("token", {}).get("days_left")

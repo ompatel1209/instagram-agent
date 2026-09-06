@@ -29,7 +29,7 @@ import time
 import requests as _requests
 
 from . import alerts, captions as captions_mod
-from . import content, instagram, music, pexels, reel, render, state, token, trending, uploads
+from . import content, festivals, instagram, music, pexels, reel, render, state, token, trending, uploads
 from .config import PREVIEW_DIR, ROOT, load_config, media_url, reel_url as reel_media_url
 
 
@@ -165,10 +165,16 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
     # Combinatorial caption when parts exist, static bank otherwise.
     # Either way it's deterministic per (vibe, date) — re-run safe.
     line = captions_mod.compose_caption(vibe, date) or picked["caption"]
-    # Static vibe bank first, then rotated trending tags (deterministic
-    # per date, so re-runs never rewrite a published caption).
+    # Festival day: the greeting line leads, festival tags ride right
+    # behind the static bank (deterministic per (date, id), so a re-run
+    # never rewrites a published caption; no festival = plain no-ops).
+    fest = festivals.festival_for(date)
+    if fest:
+        log(f"festival: {fest['name']} — greeting + tags lead today's captions")
+    line = festivals.greet(line, fest, date)
     tags = trending.caption_tags(
-        vibe, date, picked["hashtags"], cfg["hashtags"])
+        vibe, date, picked["hashtags"], cfg["hashtags"],
+        fest_tags=festivals.festival_tags(fest))
     caption = captions_mod.format_caption(line, tags)
     log(f"upload: {filename} (vibe: {vibe}, {'video' if is_video else 'photo'})")
 
@@ -614,14 +620,22 @@ def _day_complete_exit(cfg: dict, st: dict, date_str: str, label: str) -> int:
 def _publish_image_pair(cfg: dict, st: dict, date_str: str,
                         picked: dict) -> None:
     """Publish feed + story containers from the rendered quote/tip JPGs."""
+    # date_str is the source of truth here (run() may have shifted the day
+    # via POST_DATE_OVERRIDE) — derive the date object from it instead of
+    # reaching for run()'s local.
+    date = dt.date.fromisoformat(date_str)
+    fest = festivals.festival_for(date)
     if not state.done(st, date_str, "publish_feed"):
         quote_tags = trending.caption_tags(
-            "general", date, cfg["hashtags"], [])
+            "general", date, cfg["hashtags"], [],
+            fest_tags=festivals.festival_tags(fest))
         try:
             cid = instagram.create_container(
                 cfg["access_token"], cfg["ig_user_id"],
                 media_url(cfg, date_str, "feed"),
-                caption=content.caption_for(picked["quote"], quote_tags),
+                caption=festivals.greet(
+                    content.caption_for(picked["quote"], quote_tags),
+                    fest, date),
             )
             instagram.wait_finished(cfg["access_token"], cid)
             mid = instagram.publish(cfg["access_token"], cfg["ig_user_id"], cid)

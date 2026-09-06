@@ -100,7 +100,9 @@ def pick_trending_returns_vibe_plus_global_tags():
     global_set = set(pool["global"])
     assert any(t in vibe_set for t in tags), "no vibe tag present"
     assert any(t in global_set for t in tags), "no global tag present"
-    assert len(tags) <= trending.TRENDING_COUNT + trending.GLOBAL_COUNT
+    # Shape of a day's selection: trending_now lead (Feature 2c stages
+    # up to 3 fresh tags first) + the rotated vibe + global windows.
+    assert len(tags) <= trending.TRENDING_COUNT + trending.GLOBAL_COUNT + 3
 
 
 @test

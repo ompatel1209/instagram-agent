@@ -29,8 +29,8 @@ import time
 import requests as _requests
 
 from . import alerts, captions as captions_mod
-from . import content, instagram, pexels, reel, render, state, token, trending, uploads
-from .config import PREVIEW_DIR, ROOT, load_config, media_url
+from . import content, instagram, music, pexels, reel, render, state, token, trending, uploads
+from .config import PREVIEW_DIR, ROOT, load_config, media_url, reel_url as reel_media_url
 
 
 def log(msg: str) -> None:
@@ -89,6 +89,58 @@ def _download(url: str, dest: pathlib.Path) -> bool:
     return False
 
 
+def _ensure_reel_audio(cfg: dict, date: dt.date, date_str: str, st: dict,
+                       src_url: str, src_path: pathlib.Path,
+                       out_dir: pathlib.Path) -> str:
+    """Return the URL that should be published as the day's Reel.
+
+    The queued video already carries audio (all current queue files do) →
+    publish it as-is. If it's silent, mux a library track under it and
+    publish the muxed file instead — the Graph API can't attach IG-library
+    music, so embedding keeps the Reel copyright-safe and musical.
+
+    Every failure is non-fatal: a failed mux falls back to publishing the
+    silent original (a Reel without music still posts) and records a
+    failure note for the record.
+    """
+    def silent(reason: str) -> str:
+        log(f"upload: {reason} — publishing original silent video")
+        state.note_failure(st, date_str, "reel_music", reason)
+        state.save(st)
+        return src_url
+
+    if music.has_audio(src_path):
+        log("upload: queued video already carries audio — publishing as-is")
+        return src_url
+
+    track = music.pick_track(date)
+    if not track:
+        return silent("music library unavailable")
+    log(f"upload: silent video — muxing library track {track['id']}")
+
+    audio_path = out_dir / f"{date_str}-audio.m4a"
+    if not music.download_track(cfg, track, audio_path):
+        return silent(f"track {track['id']} download failed")
+
+    muxed_path = out_dir / f"{date_str}-reel-muxed.mp4"
+    if not music.mux(src_path, audio_path, muxed_path):
+        return silent("ffmpeg mux failed")
+
+    push = subprocess.run(
+        ["bash", "scripts/push_file.sh", str(muxed_path),
+         f"{date_str}-reel.mp4"],
+        capture_output=True, text=True, timeout=600,
+    )
+    if push.returncode != 0:
+        return silent(f"muxed reel push failed — {push.stderr.strip()[:100]}")
+
+    if not reel._wait_fetchable(reel_media_url(cfg, date_str)):
+        return silent("muxed reel never became fetchable")
+
+    log(f"upload: muxed library track {track['id']} into the Reel")
+    return reel_media_url(cfg, date_str)
+
+
 def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
                    out_dir: pathlib.Path) -> int:
     """Publish one queued user file: photo -> feed + Story, video -> Reel +
@@ -134,7 +186,14 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
 
     if is_video:
         # --- Video: Reel + Story cover frame --------------------------------
-        reel_url = src_url
+        # Decide what to publish as the Reel: the file as-is when it already
+        # carries audio, otherwise the same video with a library music track
+        # muxed in (silent original as the non-fatal fallback).
+        if state.done(st, date_str, "publish_feed"):
+            reel_url = src_url  # already published — the choice is recorded
+        else:
+            reel_url = _ensure_reel_audio(cfg, date, date_str, st,
+                                          src_url, src_path, out_dir)
         story_cover = out_dir / f"{date_str}-story.jpg"
         cover = render.extract_cover_frame(src_path, story_cover)
         if cover:

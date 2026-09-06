@@ -1,24 +1,24 @@
-"""Daily Reel tier: stock Pexels video + embedded Pexels audio (non-fatal).
+"""Daily Reel tier: stock Pexels video + embedded library music (non-fatal).
 
 The Instagram Graph API cannot attach licensed IG-library music to a media
 container, so the copyright-safe path for "aesthetic music on every Reel"
 is to pre-embed audio in the video file itself. This module builds that
-file: a portrait Pexels stock video (visual mood matching the day's vibe)
-muxed with audio from another licensed Pexels video, then pushed to the
-media branch and published as a Reel.
+file: a portrait stock video (visual mood matching the day's vibe) muxed
+with a track from the local music library (src/music.py), then pushed to
+the media branch and published as a Reel.
 
 Priority in src/main.py: the day's uploads-queue file IS the reel when it
-is a video (run_upload_day marks publish_reel); this module only fills the
-reel slot on days with no queued video.
+is a video (run_upload_day muxes library music into silent queue files
+itself); this module only fills the reel slot on days with no queued
+video.
+
+The stock-VIDEO half needs the Pexels API (key removed 2026-09-05, so
+this gap-fill tier is dormant until a key returns); the AUDIO half uses
+only the local library on the media branch and needs no key at all.
 
 Every failure mode is non-fatal: the caller records a "reel" failure in
 state and the day exits non-zero so the safety re-run retries — but feed
 and story never depend on this module, so their guarantee is untouched.
-
-AUDIO_SOURCES are Pexels video ids whose mp4s carry embedded audio,
-validated by probe (ffprobe audio codec present). The list rotates by day
-so the same track doesn't back every reel; extend it with more validated
-ids as they're found.
 """
 import datetime as dt
 import subprocess
@@ -27,78 +27,8 @@ import time
 import requests
 
 from . import captions as captions_mod
-from . import instagram, pexels, state
+from . import instagram, music, pexels, state
 from .config import reel_url
-
-# Validated audio-bearing Pexels videos (id, mood tag, seconds of audio).
-# All are licensed Pexels content — safe to mux and publish.
-AUDIO_SOURCES = [
-    10411103,  # ambient guitar — the original live-tested track
-    7102561,   # indian dance instrumental
-    7102478,   # indian dance instrumental
-    8872661,   # flowers / nature
-    11341089,  # flowers / nature
-    7249122,   # henna close-up ambience
-    10340016,  # henna close-up ambience
-    12193285,  # sunset nature
-    9246884,   # coffee aesthetic
-    9939786,   # coffee aesthetic
-    12742709,  # rain window
-    17713400,  # rain window
-    19997487,  # candle flame
-    15667292,  # candle flame
-    6227239,   # candle flame
-    6270175,   # candle flame
-    6973160,   # aesthetic lofi
-    20165036,  # chill nature
-]
-EPOCH = dt.date(2026, 9, 2)
-
-
-def _ffprobe_has_audio(path) -> bool:
-    """True when the video file carries an audio stream."""
-    try:
-        p = subprocess.run(
-            ["ffprobe", "-v", "error", "-select_streams", "a",
-             "-show_entries", "stream=codec_name", "-of", "csv=p=0",
-             str(path)],
-            capture_output=True, text=True, timeout=60,
-        )
-        return bool(p.stdout.strip())
-    except (subprocess.TimeoutExpired, OSError):
-        return False
-
-
-def _download_audio_source(cfg: dict, date: dt.date, dest) -> bool:
-    """Fetch the day's rotating audio source; False on any failure."""
-    n = date.toordinal() - EPOCH.toordinal()
-    source_id = AUDIO_SOURCES[n % len(AUDIO_SOURCES)]
-    audio_video = pexels.video_by_id(cfg["pexels_api_key"], source_id)
-    if not audio_video:
-        return False
-    return pexels.download_video_file(audio_video, dest)
-
-
-def _mux_music(video_path, audio_path, out_path) -> bool:
-    """Loop the short audio track under the video, trim to the video,
-    re-encode audio to AAC, keep video stream untouched (fast).
-
-    Proven live: published as Reel 18104882834264326 on @whoisaaniiiya.
-    """
-    cmd = [
-        "ffmpeg", "-y",
-        "-i", str(video_path),
-        "-stream_loop", "-1", "-i", str(audio_path),
-        "-map", "0:v:0", "-map", "1:a:0",
-        "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-ar", "44100",
-        "-shortest", "-movflags", "+faststart",
-        str(out_path),
-    ]
-    try:
-        p = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
-        return p.returncode == 0 and out_path.exists()
-    except (subprocess.TimeoutExpired, OSError):
-        return False
 
 
 def _wait_fetchable(url: str, tries: int = 20, delay: int = 15) -> bool:
@@ -137,7 +67,7 @@ def run(cfg: dict, date: dt.date, date_str: str, st: dict, out_dir) -> bool:
     a "reel" failure and exits non-zero so the safety re-run retries.
     """
     if not cfg.get("pexels_api_key"):
-        print("reel: PEXELS_API_KEY unset — reel tier disabled")
+        print("reel: PEXELS_API_KEY unset — stock-video reel tier disabled")
         return False
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -164,15 +94,18 @@ def run(cfg: dict, date: dt.date, date_str: str, st: dict, out_dir) -> bool:
         return False
 
     final_path = out_dir / f"{date_str}-reel.mp4"
-    if _ffprobe_has_audio(src_path):
+    if music.has_audio(src_path):
         print("reel: source video already carries audio — no mux needed")
         src_path.rename(final_path)
     else:
-        audio_path = out_dir / f"{date_str}-audio.mp4"
-        if not _download_audio_source(cfg, date, audio_path):
-            print("reel: audio source download failed — publishing silent")
+        track = music.pick_track(date)
+        audio_path = out_dir / f"{date_str}-audio.m4a"
+        if not track or not music.download_track(cfg, track, audio_path):
+            print("reel: library track download failed — publishing silent")
             src_path.rename(final_path)
-        elif not _mux_music(src_path, audio_path, final_path):
+            state.note_failure(st, date_str, "reel",
+                               "library track download failed — published silent")
+        elif not music.mux(src_path, audio_path, final_path):
             # Silent beats missing: still publish, still note the failure.
             print("reel: ffmpeg mux failed — publishing without music")
             src_path.rename(final_path)

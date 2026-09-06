@@ -1,0 +1,22 @@
+{
+  "tracks": [
+    {"id": "aesthetic-lofi", "filename": "music/aesthetic-lofi.m4a", "mood": "lofi", "seconds": 20},
+    {"id": "ambient-guitar", "filename": "music/ambient-guitar.m4a", "mood": "ambient", "seconds": 4},
+    {"id": "candle-flame", "filename": "music/candle-flame.m4a", "mood": "candle", "seconds": 15},
+    {"id": "candle-flame-b", "filename": "music/candle-flame-b.m4a", "mood": "candle", "seconds": 10},
+    {"id": "candle-flame-c", "filename": "music/candle-flame-c.m4a", "mood": "candle", "seconds": 13},
+    {"id": "candle-flame-d", "filename": "music/candle-flame-d.m4a", "mood": "candle", "seconds": 11},
+    {"id": "chill-nature", "filename": "music/chill-nature.m4a", "mood": "chill", "seconds": 21},
+    {"id": "coffee-aesthetic", "filename": "music/coffee-aesthetic.m4a", "mood": "coffee", "seconds": 5},
+    {"id": "coffee-aesthetic-b", "filename": "music/coffee-aesthetic-b.m4a", "mood": "coffee", "seconds": 9},
+    {"id": "flowers-nature", "filename": "music/flowers-nature.m4a", "mood": "flowers", "seconds": 30},
+    {"id": "flowers-nature-b", "filename": "music/flowers-nature-b.m4a", "mood": "flowers", "seconds": 16},
+    {"id": "henna-ambience", "filename": "music/henna-ambience.m4a", "mood": "henna", "seconds": 8},
+    {"id": "henna-ambience-b", "filename": "music/henna-ambience-b.m4a", "mood": "henna", "seconds": 13},
+    {"id": "indian-dance-instrumental", "filename": "music/indian-dance-instrumental.m4a", "mood": "indian", "seconds": 28},
+    {"id": "indian-dance-instrumental-b", "filename": "music/indian-dance-instrumental-b.m4a", "mood": "indian", "seconds": 27},
+    {"id": "rain-window", "filename": "music/rain-window.m4a", "mood": "rain", "seconds": 5},
+    {"id": "rain-window-b", "filename": "music/rain-window-b.m4a", "mood": "rain", "seconds": 12},
+    {"id": "sunset-nature", "filename": "music/sunset-nature.m4a", "mood": "sunset", "seconds": 11}
+  ]
+}

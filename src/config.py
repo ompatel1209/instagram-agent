@@ -46,3 +46,15 @@ def reel_url(cfg: dict, date_str: str) -> str:
         f"https://raw.githubusercontent.com/{cfg['repo_owner']}/{cfg['repo_name']}"
         f"/media/{date_str}-reel.mp4"
     )
+
+
+def music_url(cfg: dict, filename: str) -> str:
+    """Public raw.githubusercontent URL for a music-library track.
+
+    `filename` carries its own music/ prefix (e.g. "music/rain-window.m4a"),
+    exactly as stored in content/music.json and on the media branch.
+    """
+    return (
+        f"https://raw.githubusercontent.com/{cfg['repo_owner']}/{cfg['repo_name']}"
+        f"/media/{filename}"
+    )

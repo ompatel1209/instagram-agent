@@ -209,6 +209,28 @@ def reply_to_comments(cfg: dict, st: dict, bank: dict,
                 continue
             if str(c.get("username", "")).lstrip("@").lower() in own:
                 continue
+            # Live cross-system dedupe (Feature 5): a comment the instant
+            # webhook worker already answered — or the owner answered by
+            # hand from the phone — shows our handle among its replies.
+            # Skip and pre-mark it in state, so this comment costs one
+            # GET here and zero on every future sweep.
+            try:
+                existing = instagram.list_comment_replies(token, cid)
+            except instagram.InstagramError as e:
+                # A failed dedupe lookup must never block a reply: fall
+                # through and let the reply POST itself arbitrate (a true
+                # duplicate would just surface as a harmless extra reply).
+                _note(st, today_str,
+                      f"dedupe lookup on {cid} failed — {e}")
+            else:
+                if any(str(r.get("username", "")).lstrip("@").lower() in own
+                       for r in existing):
+                    state.mark_comment_replied(st, cid)
+                    replied.add(cid)
+                    state.save(st)
+                    print(f"engagement: comment {cid} already answered — "
+                          "skipping (webhook or manual)")
+                    continue
             text = str(c.get("text", ""))
             cat = categorize(bank, text)
             rotation = _pick_replies(cat, "comment_replies", cid)

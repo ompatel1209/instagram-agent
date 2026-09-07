@@ -374,17 +374,19 @@ def comment_ai_success_sends_tidied_model_reply():
     st = fresh_state()
     sent = []
     with TmpState():
-        with all_live(st):
-            with patch.object(instagram, "list_comments",
-                              lambda t, mid: [
-                                  {"id": "C1", "username": "fan1",
-                                   "text": "so beautiful"}]):
-                with patch.object(instagram, "reply_to_comment",
-                                  lambda t, cid, txt: sent.append(txt)):
-                    nim_ok(content="  thank you so much! "
-                                   "line1\nline2  ", tokens=100)
-                    n, perm = engagement.reply_to_comments(
-                        CFG_AI, st, BANK, "2026-09-04")
+        with all_live(st), \
+             patch.object(instagram, "list_comments",
+                          lambda t, mid: [
+                              {"id": "C1", "username": "fan1",
+                               "text": "so beautiful"}]), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: []), \
+             patch.object(instagram, "reply_to_comment",
+                          lambda t, cid, txt: sent.append(txt)):
+            nim_ok(content="  thank you so much! "
+                           "line1\nline2  ", tokens=100)
+            n, perm = engagement.reply_to_comments(
+                CFG_AI, st, BANK, "2026-09-04")
     assert n == 1 and perm is None and len(sent) == 1
     assert sent[0] == "thank you so much! line1 line2", sent
     assert st[ai.AI_BUDGET_STATE_KEY][TODAY] == 100
@@ -396,16 +398,18 @@ def comment_ai_none_falls_back_to_bank():
     st = fresh_state()
     sent = []
     with TmpState():
-        with all_live(st):
-            with patch.object(instagram, "list_comments",
-                              lambda t, mid: [
-                                  {"id": "C1", "username": "fan1",
-                                   "text": "so beautiful"}]):
-                with patch.object(instagram, "reply_to_comment",
-                                  lambda t, cid, txt: sent.append(txt)):
-                    nim_fail(content=None, finish="length")
-                    n, perm = engagement.reply_to_comments(
-                        CFG_AI, st, BANK, "2026-09-04")
+        with all_live(st), \
+             patch.object(instagram, "list_comments",
+                          lambda t, mid: [
+                              {"id": "C1", "username": "fan1",
+                               "text": "so beautiful"}]), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: []), \
+             patch.object(instagram, "reply_to_comment",
+                          lambda t, cid, txt: sent.append(txt)):
+            nim_fail(content=None, finish="length")
+            n, perm = engagement.reply_to_comments(
+                CFG_AI, st, BANK, "2026-09-04")
     assert n == 1 and len(sent) == 1
     # the bank fallback: the deterministic comment_replies pick for C1
     expected = engagement._pick_replies(
@@ -420,15 +424,17 @@ def comment_no_key_uses_bank_and_never_calls_nim():
     st = fresh_state()
     sent = []
     with TmpState():
-        with all_live(st):
-            with patch.object(instagram, "list_comments",
-                              lambda t, mid: [
-                                  {"id": "C1", "username": "fan1",
-                                   "text": "so beautiful"}]):
-                with patch.object(instagram, "reply_to_comment",
-                                  lambda t, cid, txt: sent.append(txt)):
-                    n, perm = engagement.reply_to_comments(
-                        CFG, st, BANK, "2026-09-04")
+        with all_live(st), \
+             patch.object(instagram, "list_comments",
+                          lambda t, mid: [
+                              {"id": "C1", "username": "fan1",
+                               "text": "so beautiful"}]), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: []), \
+             patch.object(instagram, "reply_to_comment",
+                          lambda t, cid, txt: sent.append(txt)):
+            n, perm = engagement.reply_to_comments(
+                CFG, st, BANK, "2026-09-04")
     assert n == 1 and not _fake.calls, \
         "empty nvidia_api_key must not touch the NIM endpoint"
     expected = engagement._pick_replies(
@@ -444,16 +450,18 @@ def comment_ai_success_spends_into_real_state():
     _fake.responses.clear()
     st = fresh_state()
     with TmpState():
-        with all_live(st):
-            with patch.object(instagram, "list_comments",
-                              lambda t, mid: [
-                                  {"id": "C2", "username": "fan2",
-                                   "text": "nice pic"}]):
-                with patch.object(instagram, "reply_to_comment",
-                                  lambda t, cid, txt: None):
-                    nim_ok(tokens=222)
-                    engagement.reply_to_comments(
-                        CFG_AI, st, BANK, "2026-09-04")
+        with all_live(st), \
+             patch.object(instagram, "list_comments",
+                          lambda t, mid: [
+                              {"id": "C2", "username": "fan2",
+                               "text": "nice pic"}]), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: []), \
+             patch.object(instagram, "reply_to_comment",
+                          lambda t, cid, txt: None):
+            nim_ok(tokens=222)
+            engagement.reply_to_comments(
+                CFG_AI, st, BANK, "2026-09-04")
         saved = state.load()
     assert saved[ai.AI_BUDGET_STATE_KEY][TODAY] == 222
 

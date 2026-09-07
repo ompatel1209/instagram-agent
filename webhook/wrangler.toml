@@ -1,0 +1,15 @@
+# Feature 5 — instant-reply webhook worker deployment config.
+#
+# Secrets are NOT set here (public repo!). After `wrangler deploy`, set each
+# one with `wrangler secret put <NAME>` — see webhook/README.md:
+#   IG_USER_ID, IG_ACCESS_TOKEN, NVIDIA_API_KEY, WEBHOOK_VERIFY_TOKEN,
+#   APP_SECRET (optional — enables X-Hub-Signature-256 checking)
+# Plain config (safe as defaults, override with secrets if you like):
+#   IG_HANDLE, NO_REPLY_USERS, REPLY_BANK_URL
+name = "instagram-agent-webhook"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+
+# Free tier, no KV, no cron, no extra bindings: the worker is stateless by
+# design — dedupe happens against the live comment thread, not shared state
+# (the hourly engage.yml sweep checks the same edge and pre-marks state.json).

@@ -217,6 +217,28 @@ def reply_to_comment(token: str, comment_id: str, message: str) -> str:
     return str(rid)
 
 
+def list_comment_replies(token: str, comment_id: str,
+                         limit: int = 30) -> list[dict]:
+    """Existing replies on a comment: GET /{comment-id}/replies.
+
+    Each item: {"id", "text", "username"}. The live cross-system dedupe —
+    both the hourly sweep and the instant webhook worker ask this edge
+    "did our handle already answer here?" before replying, so a comment
+    answered by either side (or manually from the phone) is never replied
+    twice, no matter what either state store says.
+    """
+    r = requests.get(
+        f"{BASE}/{comment_id}/replies",
+        params={
+            "fields": "id,text,username",
+            "limit": limit,
+            "access_token": token,
+        },
+        timeout=TIMEOUT,
+    )
+    return _check(r).get("data", [])
+
+
 def list_conversations(token: str, ig_user_id: str) -> list[dict]:
     """Instagram DM conversations (threads) for the account.
 

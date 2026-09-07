@@ -271,6 +271,23 @@ def client_reply_to_comment():
 
 
 @test
+def client_list_comment_replies():
+    # The Feature 5 dedupe edge: GET /{comment-id}/replies. Same transport
+    # shape as list_comments — token in params, never in the URL path.
+    _fake.responses = [FakeResponse(200, {"data": [
+        {"id": "R1", "text": "ty 🤍", "username": "whoisaaniiiya"}]})]
+    out = instagram.list_comment_replies("TOK", "C7")
+    assert out == [{"id": "R1", "text": "ty 🤍",
+                    "username": "whoisaaniiiya"}]
+    method, url, kw = _fake.calls[-1]
+    assert (method, url) == ("GET", f"{instagram.BASE}/C7/replies")
+    p = kw["params"]
+    assert p["access_token"] == "TOK" and p["limit"] == 30
+    assert set("id text username".split()) <= set(p["fields"].split(","))
+    assert "TOK" not in url
+
+
+@test
 def client_list_conversations():
     _fake.responses = [FakeResponse(200, {"data": [{"id": "T1"}]})]
     out = instagram.list_conversations("TOK", "IG_USER")
@@ -325,6 +342,8 @@ def comment_flow_replies_skips_and_saves():
         with all_live(st), \
              patch.object(instagram, "list_comments",
                           lambda t, m: comments), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: []), \
              patch.object(instagram, "reply_to_comment",
                           lambda t, c, m: replied.append((c, m)) or "RID"):
             n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
@@ -347,6 +366,8 @@ def comment_cap_respected():
         with all_live(st), \
              patch.object(instagram, "list_comments",
                           lambda t, m: comments), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: []), \
              patch.object(instagram, "reply_to_comment",
                           lambda t, c, m: "RID"):
             n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
@@ -404,6 +425,8 @@ def story_comments_error_is_not_a_permission_problem():
     with TmpState():
         with all_live(st), \
              patch.object(instagram, "list_comments", list_comments), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: []), \
              patch.object(instagram, "reply_to_comment",
                           lambda t, c, m: "RID"):
             n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
@@ -430,6 +453,8 @@ def comment_reply_failure_continues():
         with all_live(st), \
              patch.object(instagram, "list_comments",
                           lambda t, m: comments), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: []), \
              patch.object(instagram, "reply_to_comment", reply):
             n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
         assert n == 1 and perm is None
@@ -437,6 +462,101 @@ def comment_reply_failure_continues():
         assert "C_BAD" not in st["replied_comments"]
         assert any(f.get("where") == "engagement"
                    for f in st["days"][TODAY]["failures"])
+
+
+# ------------------------------------------- live cross-system dedupe (Feature 5)
+@test
+def comment_already_answered_is_skipped_and_premarked():
+    # The instant webhook worker (or the owner from the phone) already
+    # answered under this comment — our handle is among its replies. The
+    # sweep must skip it AND pre-mark it into state, so every future sweep
+    # costs zero GETs on this comment.
+    st = fresh_state()
+    comments = [{"id": "C_ANS", "text": "so cute 😍", "username": "fan1"}]
+    replied = []
+    with TmpState() as ts:
+        with all_live(st), \
+             patch.object(instagram, "list_comments",
+                          lambda t, m: comments), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: [{"id": "R1", "text": "ty 🤍",
+                                         "username": "whoisaaniiiya"}]), \
+             patch.object(instagram, "reply_to_comment",
+                          lambda t, c, m: replied.append(m) or "RID"):
+            n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
+        assert n == 0 and perm is None
+        assert replied == []                      # no second reply, ever
+        assert "C_ANS" in st["replied_comments"]   # pre-marked for free
+        assert len(ts.saves) == 1                  # exactly the pre-mark save
+
+
+@test
+def comment_dedupe_lookup_failure_falls_through():
+    # A failed dedupe GET must never block a reply: fall through and let the
+    # reply POST itself arbitrate (a true duplicate would only surface as a
+    # harmless extra reply). The failure is still noted.
+    st = fresh_state()
+    comments = [{"id": "C_OK", "text": "wow", "username": "fan1"}]
+    replied = []
+
+    def dedupe_boom(t, c):
+        raise instagram.InstagramError("HTTP 500: dedupe lookup boom")
+
+    with TmpState():
+        with all_live(st), \
+             patch.object(instagram, "list_comments",
+                          lambda t, m: comments), \
+             patch.object(instagram, "list_comment_replies", dedupe_boom), \
+             patch.object(instagram, "reply_to_comment",
+                          lambda t, c, m: replied.append(m) or "RID"):
+            n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
+        assert n == 1 and perm is None
+        assert replied                        # the reply still fired
+        assert "C_OK" in st["replied_comments"]
+        assert any("dedupe lookup" in f["message"]
+                   for f in st["days"][TODAY]["failures"])
+
+
+@test
+def comment_dedupe_normalizes_own_handle():
+    # The reply-thread check must @-strip and case-fold before matching —
+    # "@WhoIsAaniiiya" on a manual phone reply is still us.
+    st = fresh_state()
+    comments = [{"id": "C_CASE", "text": "wow", "username": "fan1"}]
+    replied = []
+    with TmpState():
+        with all_live(st), \
+             patch.object(instagram, "list_comments",
+                          lambda t, m: comments), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: [{"id": "R1", "text": "ty!",
+                                         "username": "@WhoIsAaniiiya"}]), \
+             patch.object(instagram, "reply_to_comment",
+                          lambda t, c, m: replied.append(m) or "RID"):
+            n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
+        assert n == 0 and replied == []
+        assert "C_CASE" in st["replied_comments"]
+
+
+@test
+def comment_third_party_reply_still_answered():
+    # Only OUR handle counts as "already answered" — a third party replying
+    # in the thread is not us, so the comment still gets a reply.
+    st = fresh_state()
+    comments = [{"id": "C3", "text": "nice pic", "username": "fan1"}]
+    replied = []
+    with TmpState():
+        with all_live(st), \
+             patch.object(instagram, "list_comments",
+                          lambda t, m: comments), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: [{"id": "R9", "text": "same!!",
+                                         "username": "otherfan"}]), \
+             patch.object(instagram, "reply_to_comment",
+                          lambda t, c, m: replied.append(m) or "RID"):
+            n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
+        assert n == 1 and perm is None
+        assert replied and "C3" in st["replied_comments"]
 
 
 @test
@@ -516,6 +636,8 @@ def dead_media_ids_skipped_not_flagged():
         with patch.object(instagram, "list_media", live), \
              patch.object(instagram, "list_comments",
                           lambda t, m: comments), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: []), \
              patch.object(instagram, "reply_to_comment",
                           lambda t, c, m: replied.append(m) or "RID"):
             n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)

@@ -3,6 +3,10 @@
 Outputs JPEG (the Instagram Content Publishing API accepts JPEG only for
 image posts) at 1080x1350 (feed, 4:5) and 1080x1920 (story, 9:16).
 """
+from __future__ import annotations  # annotations stay lazy — test stubs
+# (types.ModuleType shells) can import src without Image.Image /
+# ImageDraw.ImageDraw / ImageFont.FreeTypeFont existing at def time.
+
 import pathlib
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps

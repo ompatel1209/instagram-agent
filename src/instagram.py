@@ -5,6 +5,10 @@ Implements the official Content Publishing flow:
   2. GET  /{container-id}?fields=status_code  (poll once/min, <=5 min)
   3. POST /{ig-user-id}/media_publish   -> published media id
 """
+from __future__ import annotations  # annotations stay lazy — test stubs
+# (types.ModuleType with only RequestException/get/post) can import src
+# without needing requests.Response to exist at def time.
+
 import time
 
 import requests

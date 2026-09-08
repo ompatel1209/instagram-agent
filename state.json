@@ -173,21 +173,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-09-07",
+    "date": "2026-09-08",
     "trending_now": [
-      "innerpeace",
-      "dailydose",
-      "selfietime",
-      "independentwoman",
-      "reelsdaily"
+      "dailycontent",
+      "selfiequeen",
+      "highstandards",
+      "softaesthetic",
+      "growwithreels"
     ],
     "queue_remaining": 57,
     "next_file": "2-attitude-02.mp4",
     "vibe": "attitude",
     "is_video": true,
     "music_track": {
-      "id": "candle-flame-d",
-      "mood": "candle"
+      "id": "chill-nature",
+      "mood": "chill"
     },
     "token_days_left": null,
     "festival": null

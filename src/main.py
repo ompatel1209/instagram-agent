@@ -33,6 +33,28 @@ from . import content, festivals, instagram, music, pexels, reel, render, state,
 from .config import PREVIEW_DIR, ROOT, load_config, media_url, reel_url as reel_media_url
 
 
+IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
+
+
+def resolve_date(override: str | None) -> dt.date:
+    """The run's date: explicit override (CLI --date / POST_DATE_OVERRIDE),
+    else today IST. Refuses future dates with ValueError — three setup-time
+    manual dispatches carried future overrides and published those days
+    early, marking them complete in state so the real days went silent.
+    Past/today overrides stay allowed: backfill is that input's purpose.
+    """
+    if override:
+        date = dt.date.fromisoformat(override)
+    else:
+        date = dt.datetime.now(IST).date()
+    today = dt.datetime.now(IST).date()
+    if date > today:
+        raise ValueError(
+            f"refusing future date {date.isoformat()} — today is "
+            f"{today.isoformat()}; manual runs may not publish ahead")
+    return date
+
+
 def log(msg: str) -> None:
     print(f"[ig-agent] {msg}", flush=True)
 
@@ -414,10 +436,7 @@ def run() -> int:
     args = parser.parse_args()
 
     cfg = load_config()
-    IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
-    date = (dt.date.fromisoformat(args.date or os.environ.get("POST_DATE_OVERRIDE")
-                                  or "") if (args.date or os.environ.get("POST_DATE_OVERRIDE"))
-            else dt.datetime.now(IST).date())
+    date = resolve_date(args.date or os.environ.get("POST_DATE_OVERRIDE") or None)
     date_str = date.isoformat()
 
     # --- Dry-run: render only ------------------------------------------------

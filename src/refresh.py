@@ -47,13 +47,14 @@ def _today() -> dt.date:
     """The run's date: POST_DATE_OVERRIDE env, else now in IST.
 
     Mirrors src/main.py's date computation (same timezone, same env
-    override) so a backfill refreshes the tags for the date that
-    actually publishes, and the 03:03 UTC cron stages the window for the
-    same IST day the 03:33 UTC post will use.
+    override, same future-date refusal) so a backfill refreshes the tags
+    for the date that actually publishes, and the 03:03 UTC cron stages
+    the window for the same IST day the 03:33 UTC post will use.
     """
     override = os.environ.get("POST_DATE_OVERRIDE", "")
     if override:
-        return dt.date.fromisoformat(override)
+        from .main import resolve_date
+        return resolve_date(override)
     return dt.datetime.now(IST).date()
 
 

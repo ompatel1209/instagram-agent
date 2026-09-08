@@ -54,9 +54,12 @@ sys.modules["requests"] = _requests
 from src import captions as captions_mod  # noqa: E402
 from src import music, refresh, state, trending, uploads  # noqa: E402
 
-DATE = dt.date(2026, 9, 12)
-DATE_STR = "2026-09-12"
-NEXT_STR = "2026-09-13"
+# The run date is a PAST day (yesterday IST) — since the future-date guard
+# landed (test_dates.py), overrides may be past/today only, never ahead.
+# Computed once at import so every test in this file shares one stable date.
+DATE = dt.datetime.now(refresh.IST).date() - dt.timedelta(days=1)
+DATE_STR = DATE.isoformat()
+NEXT_STR = dt.datetime.now(refresh.IST).date().isoformat()  # today: allowed
 
 SCRATCH = ROOT / "tmp_refresh_test"
 HASHTAGS = SCRATCH / "hashtags.json"

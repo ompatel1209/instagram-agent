@@ -10,7 +10,8 @@ on:
   workflow_dispatch:       # manual "Run workflow" button for testing
     inputs:
       date:
-        description: "Post date override (YYYY-MM-DD) — publish for that day"
+        description: "Backfill a missed day (YYYY-MM-DD, past/today only — future dates are refused by the agent)"
+        required: false
         required: false
         default: ""
         type: string

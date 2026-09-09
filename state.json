@@ -141,6 +141,18 @@
       "publish_feed": true,
       "publish_reel": true,
       "publish_story": true
+    },
+    "2026-09-09": {
+      "token_refreshed": true,
+      "media_of_day": "2-attitude-19.mp4",
+      "published_media": {
+        "feed": "17906791077507438",
+        "reel": "17906791077507438",
+        "story": "18122429831482645"
+      },
+      "publish_feed": true,
+      "publish_reel": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -150,7 +162,8 @@
     "2f86be10f2bff0714eb8586ca5e5bdc5.jpg",
     "339713e9dde860f30fe6e5119e0c6571.jpg",
     "0selfie1.mp4",
-    "2-attitude-02.mp4"
+    "2-attitude-02.mp4",
+    "2-attitude-19.mp4"
   ],
   "engagement": {
     "permissions_missing": [],

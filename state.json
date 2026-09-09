@@ -157,21 +157,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-09-08",
+    "date": "2026-09-09",
     "trending_now": [
-      "dailycontent",
-      "selfiequeen",
-      "highstandards",
-      "softaesthetic",
-      "growwithreels"
+      "justme",
+      "attitudequeen",
+      "girlygirl",
+      "outfitinspo",
+      "viral"
     ],
     "queue_remaining": 56,
     "next_file": "2-attitude-19.mp4",
     "vibe": "attitude",
     "is_video": true,
     "music_track": {
-      "id": "chill-nature",
-      "mood": "chill"
+      "id": "coffee-aesthetic",
+      "mood": "coffee"
     },
     "token_days_left": null,
     "festival": null

@@ -48,3 +48,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT != '' && secrets.GH_PAT || github.token }}
         run: bash scripts/push_state.sh
+
+# schedule re-registered 2026-09-09 (GitHub cron drop repair — same as the Sep 3 fix)

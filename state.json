@@ -170,20 +170,20 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-09-09",
+    "date": "2026-09-10",
     "trending_now": [
-      "justme",
-      "attitudequeen",
-      "girlygirl",
-      "outfitinspo",
-      "viral"
+      "fierce",
+      "girlyaesthetic",
+      "streetstyle",
+      "traveladdict",
+      "instagood"
     ],
-    "queue_remaining": 56,
-    "next_file": "2-attitude-19.mp4",
+    "queue_remaining": 55,
+    "next_file": "2-attitude-38.mp4",
     "vibe": "attitude",
     "is_video": true,
     "music_track": {
-      "id": "coffee-aesthetic",
+      "id": "coffee-aesthetic-b",
       "mood": "coffee"
     },
     "token_days_left": null,

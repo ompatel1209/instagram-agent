@@ -183,21 +183,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-09-10",
+    "date": "2026-09-11",
     "trending_now": [
-      "fierce",
-      "girlyaesthetic",
-      "streetstyle",
-      "traveladdict",
-      "instagood"
+      "babyme",
+      "instafashion",
+      "indiatravel",
+      "selfimprovement",
+      "discoverpage"
     ],
-    "queue_remaining": 55,
-    "next_file": "2-attitude-38.mp4",
-    "vibe": "attitude",
+    "queue_remaining": 54,
+    "next_file": "2-cute-07.mp4",
+    "vibe": "cute",
     "is_video": true,
     "music_track": {
-      "id": "coffee-aesthetic-b",
-      "mood": "coffee"
+      "id": "flowers-nature",
+      "mood": "flowers"
     },
     "token_days_left": null,
     "festival": null

@@ -196,20 +196,20 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-09-11",
+    "date": "2026-09-12",
     "trending_now": [
-      "babyme",
-      "instafashion",
-      "indiatravel",
-      "selfimprovement",
-      "discoverpage"
+      "streetstyle",
+      "naturelovers",
+      "betterself",
+      "postoftheday",
+      "viralreels"
     ],
     "queue_remaining": 53,
     "next_file": "2-cute-27.mp4",
     "vibe": "cute",
     "is_video": true,
     "music_track": {
-      "id": "flowers-nature",
+      "id": "flowers-nature-b",
       "mood": "flowers"
     },
     "token_days_left": null,

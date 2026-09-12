@@ -177,6 +177,18 @@
       "publish_feed": true,
       "publish_reel": true,
       "publish_story": true
+    },
+    "2026-09-12": {
+      "token_refreshed": true,
+      "media_of_day": "2-cute-27.mp4",
+      "published_media": {
+        "feed": "18408836107080111",
+        "reel": "18408836107080111",
+        "story": "18040526081820686"
+      },
+      "publish_feed": true,
+      "publish_reel": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -189,7 +201,8 @@
     "2-attitude-02.mp4",
     "2-attitude-19.mp4",
     "2-attitude-38.mp4",
-    "2-cute-07.mp4"
+    "2-cute-07.mp4",
+    "2-cute-27.mp4"
   ],
   "engagement": {
     "permissions_missing": [],

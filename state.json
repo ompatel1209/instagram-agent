@@ -188,7 +188,13 @@
       },
       "publish_feed": true,
       "publish_reel": true,
-      "publish_story": true
+      "publish_story": true,
+      "failures": [
+        {
+          "where": "engagement",
+          "message": "list comments on 18408836107080111 failed — HTTP 500: An unexpected error has occurred. Please retry your request later."
+        }
+      ]
     }
   },
   "posted_files": [

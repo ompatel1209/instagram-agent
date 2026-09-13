@@ -215,21 +215,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-09-12",
+    "date": "2026-09-13",
     "trending_now": [
-      "streetstyle",
-      "naturelovers",
-      "betterself",
-      "postoftheday",
-      "viralreels"
+      "sunsetlovers",
+      "glowupjourney",
+      "girldaily",
+      "feelingmyself",
+      "dailyreels"
     ],
-    "queue_remaining": 53,
-    "next_file": "2-cute-27.mp4",
+    "queue_remaining": 52,
+    "next_file": "2-cute-39.mp4",
     "vibe": "cute",
     "is_video": true,
     "music_track": {
-      "id": "flowers-nature-b",
-      "mood": "flowers"
+      "id": "henna-ambience",
+      "mood": "henna"
     },
     "token_days_left": null,
     "festival": null

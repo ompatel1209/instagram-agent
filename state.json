@@ -215,23 +215,27 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-09-13",
+    "date": "2026-09-14",
     "trending_now": [
-      "sunsetlovers",
-      "glowupjourney",
-      "girldaily",
-      "feelingmyself",
-      "dailyreels"
+      "romanticizeyourlife",
+      "lifestyleblogger",
+      "candidselfie",
+      "elegantwoman",
+      "viral"
     ],
-    "queue_remaining": 52,
-    "next_file": "2-cute-39.mp4",
-    "vibe": "cute",
+    "queue_remaining": 39,
+    "next_file": "0selfie1.mp4",
+    "vibe": "selfie",
     "is_video": true,
     "music_track": {
-      "id": "henna-ambience",
+      "id": "henna-ambience-b",
       "mood": "henna"
     },
     "token_days_left": null,
-    "festival": null
+    "festival": {
+      "id": "ganesh-chaturthi",
+      "name": "Ganesh Chaturthi",
+      "vibe": "cute"
+    }
   }
 }

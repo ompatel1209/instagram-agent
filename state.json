@@ -219,10 +219,21 @@
       "publish_feed": true,
       "publish_reel": true,
       "publish_story": true
+    },
+    "2026-09-15": {
+      "token_refreshed": true,
+      "media_of_day": "2f86be10f2bff0714eb8586ca5e5bdc5.jpg",
+      "published_media": {
+        "feed": "18095905325104945",
+        "story": "18111453731033875"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
-    "0selfie1.mp4"
+    "0selfie1.mp4",
+    "2f86be10f2bff0714eb8586ca5e5bdc5.jpg"
   ],
   "engagement": {
     "permissions_missing": [],

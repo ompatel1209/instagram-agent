@@ -207,9 +207,23 @@
       "publish_feed": true,
       "publish_reel": true,
       "publish_story": true
+    },
+    "2026-09-14": {
+      "token_refreshed": true,
+      "media_of_day": "0selfie1.mp4",
+      "published_media": {
+        "feed": "18103163945341723",
+        "reel": "18103163945341723",
+        "story": "18332658916276430"
+      },
+      "publish_feed": true,
+      "publish_reel": true,
+      "publish_story": true
     }
   },
-  "posted_files": [],
+  "posted_files": [
+    "0selfie1.mp4"
+  ],
   "engagement": {
     "permissions_missing": [],
     "last_run": "0 comment replies, 0 DM replies"

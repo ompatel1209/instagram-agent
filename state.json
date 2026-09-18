@@ -249,13 +249,24 @@
       },
       "publish_feed": true,
       "publish_story": true
+    },
+    "2026-09-18": {
+      "token_refreshed": true,
+      "media_of_day": "40ab1e55b0344cea7c7b964bb0bbc421.jpg",
+      "published_media": {
+        "feed": "18334868860278372",
+        "story": "17935621443123929"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
     "0selfie1.mp4",
     "2f86be10f2bff0714eb8586ca5e5bdc5.jpg",
     "339713e9dde860f30fe6e5119e0c6571.jpg",
-    "3abaa0ef59a7af146805d64d58d96fe3.jpg"
+    "3abaa0ef59a7af146805d64d58d96fe3.jpg",
+    "40ab1e55b0344cea7c7b964bb0bbc421.jpg"
   ],
   "engagement": {
     "permissions_missing": [],

@@ -273,21 +273,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-09-18",
+    "date": "2026-09-19",
     "trending_now": [
-      "adorablegirl",
-      "lookoftheday",
-      "indiatravel",
-      "selfgrowth",
-      "instadiscover"
+      "styleinspiration",
+      "travelphotography",
+      "selfcareday",
+      "aestheticfeed",
+      "reelsdaily"
     ],
     "queue_remaining": 34,
     "next_file": "44d688fb254662e9858a573d7620d5c4.jpg",
     "vibe": "general",
     "is_video": false,
     "music_track": {
-      "id": "rain-window-b",
-      "mood": "rain"
+      "id": "sunset-nature",
+      "mood": "sunset"
     },
     "token_days_left": null,
     "festival": null

@@ -295,21 +295,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-09-20",
+    "date": "2026-09-21",
     "trending_now": [
-      "beachday",
-      "selfloveclub",
-      "contentcreator",
-      "selfieofday",
-      "viralreels"
+      "selfcareday",
+      "simplepleasures",
+      "nofilterselfie",
+      "selfmadewoman",
+      "viral"
     ],
-    "queue_remaining": 33,
-    "next_file": "4b3247c9a374da60add051c25eeb3f1d.jpg",
+    "queue_remaining": 32,
+    "next_file": "4d8c30e2dd938cce3fb8dd2065dacc0b.jpg",
     "vibe": "general",
     "is_video": false,
     "music_track": {
-      "id": "aesthetic-lofi",
-      "mood": "lofi"
+      "id": "ambient-guitar",
+      "mood": "ambient"
     },
     "token_days_left": null,
     "festival": null

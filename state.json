@@ -299,6 +299,16 @@
       },
       "publish_feed": true,
       "publish_story": true
+    },
+    "2026-09-23": {
+      "token_refreshed": true,
+      "media_of_day": "5ebf0e2a04c9ab6f00ece468b6d285ad.jpg",
+      "published_media": {
+        "feed": "18107134841264687",
+        "story": "18112445792045785"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -310,7 +320,8 @@
     "44d688fb254662e9858a573d7620d5c4.jpg",
     "4b3247c9a374da60add051c25eeb3f1d.jpg",
     "4d8c30e2dd938cce3fb8dd2065dacc0b.jpg",
-    "58bcac878dfeb66200fac824f2936bba.jpg"
+    "58bcac878dfeb66200fac824f2936bba.jpg",
+    "5ebf0e2a04c9ab6f00ece468b6d285ad.jpg"
   ],
   "engagement": {
     "permissions_missing": [],

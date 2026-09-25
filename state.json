@@ -339,20 +339,20 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-09-24",
+    "date": "2026-09-25",
     "trending_now": [
-      "sassyqueen",
-      "cutevibes",
-      "fashiondiaries",
-      "travelmore",
-      "reelsdaily"
+      "coquette",
+      "indowestern",
+      "travellover",
+      "innerpeace",
+      "trending"
     ],
-    "queue_remaining": 29,
-    "next_file": "6b845743c0bb8b9bd0123e88a38964fa.jpg",
+    "queue_remaining": 28,
+    "next_file": "8b71cfe0f4222677602494a7781d3b23.jpg",
     "vibe": "general",
     "is_video": false,
     "music_track": {
-      "id": "candle-flame-c",
+      "id": "candle-flame-d",
       "mood": "candle"
     },
     "token_days_left": null,

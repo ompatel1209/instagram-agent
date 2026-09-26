@@ -350,21 +350,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-09-25",
+    "date": "2026-09-26",
     "trending_now": [
-      "coquette",
-      "indowestern",
-      "travellover",
-      "innerpeace",
-      "trending"
+      "styleoftheday",
+      "traveleveryday",
+      "softlife",
+      "dailycontent",
+      "viral"
     ],
-    "queue_remaining": 28,
-    "next_file": "8b71cfe0f4222677602494a7781d3b23.jpg",
+    "queue_remaining": 27,
+    "next_file": "9521535c4a35ad40c81b9fb7bcd59a61.jpg",
     "vibe": "general",
     "is_video": false,
     "music_track": {
-      "id": "candle-flame-d",
-      "mood": "candle"
+      "id": "chill-nature",
+      "mood": "chill"
     },
     "token_days_left": null,
     "festival": null

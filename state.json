@@ -431,6 +431,18 @@
       "publish_feed": true,
       "publish_reel": true,
       "publish_story": true
+    },
+    "2026-10-05": {
+      "token_refreshed": true,
+      "media_of_day": "From Klickpin.com- Need fresh inspiration Save these clever weekend outfit ideas that turn ordinary ideas into scroll-stopping inspiration with re (7).mp4",
+      "published_media": {
+        "feed": "17905529643663860",
+        "reel": "17905529643663860",
+        "story": "18211342957363115"
+      },
+      "publish_feed": true,
+      "publish_reel": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -454,7 +466,8 @@
     "From Klickpin.com- Need fresh inspiration Save these clever weekend outfit ideas that turn ordinary ideas into scroll-stopping inspiration with re (3).mp4",
     "From Klickpin.com- Need fresh inspiration Save these clever weekend outfit ideas that turn ordinary ideas into scroll-stopping inspiration with re (4).mp4",
     "From Klickpin.com- Need fresh inspiration Save these clever weekend outfit ideas that turn ordinary ideas into scroll-stopping inspiration with re (5).mp4",
-    "From Klickpin.com- Need fresh inspiration Save these clever weekend outfit ideas that turn ordinary ideas into scroll-stopping inspiration with re (6).mp4"
+    "From Klickpin.com- Need fresh inspiration Save these clever weekend outfit ideas that turn ordinary ideas into scroll-stopping inspiration with re (6).mp4",
+    "From Klickpin.com- Need fresh inspiration Save these clever weekend outfit ideas that turn ordinary ideas into scroll-stopping inspiration with re (7).mp4"
   ],
   "engagement": {
     "permissions_missing": [],

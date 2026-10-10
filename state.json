@@ -530,21 +530,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-09",
+    "date": "2026-10-10",
     "trending_now": [
-      "softgirlaesthetic",
-      "casualchic",
-      "hiddenplaces",
-      "romanticizeyourlife",
-      "newpost"
+      "instafashion",
+      "weekendgetaway",
+      "betterself",
+      "igdaily",
+      "trendingreels"
     ],
-    "queue_remaining": 14,
-    "next_file": "a1a6763d874a0420822414606ff0f90f.jpg",
+    "queue_remaining": 13,
+    "next_file": "a29727c9392fb02450719975dafa94c3.jpg",
     "vibe": "general",
     "is_video": false,
     "music_track": {
-      "id": "ambient-guitar",
-      "mood": "ambient"
+      "id": "candle-flame",
+      "mood": "candle"
     },
     "token_days_left": null,
     "festival": null

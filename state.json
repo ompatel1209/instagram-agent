@@ -541,23 +541,27 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "trending_now": [
-      "instafashion",
-      "weekendgetaway",
-      "betterself",
-      "igdaily",
-      "trendingreels"
+      "solotravel",
+      "selfcareday",
+      "aestheticfeed",
+      "goldenhourlight",
+      "instagood"
     ],
-    "queue_remaining": 13,
-    "next_file": "a29727c9392fb02450719975dafa94c3.jpg",
+    "queue_remaining": 12,
+    "next_file": "afc237d532fb07a751d1897ffa39e2da.jpg",
     "vibe": "general",
     "is_video": false,
     "music_track": {
-      "id": "candle-flame",
+      "id": "candle-flame-b",
       "mood": "candle"
     },
     "token_days_left": null,
-    "festival": null
+    "festival": {
+      "id": "navratri",
+      "name": "Navratri",
+      "vibe": "cute"
+    }
   }
 }

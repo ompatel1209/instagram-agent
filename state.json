@@ -552,27 +552,23 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-11",
+    "date": "2026-10-12",
     "trending_now": [
-      "solotravel",
-      "selfcareday",
-      "aestheticfeed",
-      "goldenhourlight",
-      "instagood"
+      "growthmindset",
+      "girldaily",
+      "selfietime",
+      "girlenergy",
+      "viralreels"
     ],
-    "queue_remaining": 12,
-    "next_file": "afc237d532fb07a751d1897ffa39e2da.jpg",
-    "vibe": "general",
-    "is_video": false,
+    "queue_remaining": 11,
+    "next_file": "attitude-02.mp4",
+    "vibe": "attitude",
+    "is_video": true,
     "music_track": {
-      "id": "candle-flame-b",
+      "id": "candle-flame-c",
       "mood": "candle"
     },
     "token_days_left": null,
-    "festival": {
-      "id": "navratri",
-      "name": "Navratri",
-      "vibe": "cute"
-    }
+    "festival": null
   }
 }

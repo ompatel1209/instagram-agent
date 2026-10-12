@@ -527,6 +527,20 @@
       "publish_feed": true,
       "publish_reel": true,
       "publish_story": true
+    },
+    "2026-10-13": {
+      "token_refreshed": true,
+      "media_of_day": "b61887bb56b09a1771bbabccc7f67465.jpg",
+      "published_media": {
+        "feed": "18450417904131365"
+      },
+      "publish_feed": true,
+      "failures": [
+        {
+          "where": "story",
+          "message": "HTTP 400: The requested resource does not exist"
+        }
+      ]
     }
   },
   "posted_files": [
@@ -558,7 +572,8 @@
     "a1a6763d874a0420822414606ff0f90f.jpg",
     "a29727c9392fb02450719975dafa94c3.jpg",
     "afc237d532fb07a751d1897ffa39e2da.jpg",
-    "attitude-02.mp4"
+    "attitude-02.mp4",
+    "b61887bb56b09a1771bbabccc7f67465.jpg"
   ],
   "engagement": {
     "permissions_missing": [],

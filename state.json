@@ -532,7 +532,8 @@
       "token_refreshed": true,
       "media_of_day": "b61887bb56b09a1771bbabccc7f67465.jpg",
       "published_media": {
-        "feed": "18450417904131365"
+        "feed": "18450417904131365",
+        "story": "17942100933361642"
       },
       "publish_feed": true,
       "failures": [
@@ -540,7 +541,8 @@
           "where": "story",
           "message": "HTTP 400: The requested resource does not exist"
         }
-      ]
+      ],
+      "publish_story": true
     }
   },
   "posted_files": [

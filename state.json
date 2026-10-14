@@ -543,6 +543,20 @@
         }
       ],
       "publish_story": true
+    },
+    "2026-10-14": {
+      "token_refreshed": true,
+      "media_of_day": "b7b0bc39c8ad19ee17108945cad0f28a.jpg",
+      "published_media": {
+        "feed": "18134758777668709"
+      },
+      "publish_feed": true,
+      "failures": [
+        {
+          "where": "story",
+          "message": "HTTP 400: Media ID is not available"
+        }
+      ]
     }
   },
   "posted_files": [
@@ -575,7 +589,8 @@
     "a29727c9392fb02450719975dafa94c3.jpg",
     "afc237d532fb07a751d1897ffa39e2da.jpg",
     "attitude-02.mp4",
-    "b61887bb56b09a1771bbabccc7f67465.jpg"
+    "b61887bb56b09a1771bbabccc7f67465.jpg",
+    "b7b0bc39c8ad19ee17108945cad0f28a.jpg"
   ],
   "engagement": {
     "permissions_missing": [],

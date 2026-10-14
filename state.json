@@ -582,12 +582,12 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-13",
+    "date": "2026-10-14",
     "trending_now": [
-      "goodvibesonly",
       "nofilterselfie",
-      "boldandbeautiful",
-      "softaesthetic",
+      "queenmindset",
+      "cutesy",
+      "indianoutfit",
       "dailyreels"
     ],
     "queue_remaining": 9,
@@ -595,8 +595,8 @@
     "vibe": "general",
     "is_video": false,
     "music_track": {
-      "id": "candle-flame-d",
-      "mood": "candle"
+      "id": "chill-nature",
+      "mood": "chill"
     },
     "token_days_left": null,
     "festival": null

@@ -548,7 +548,8 @@
       "token_refreshed": true,
       "media_of_day": "b7b0bc39c8ad19ee17108945cad0f28a.jpg",
       "published_media": {
-        "feed": "18134758777668709"
+        "feed": "18134758777668709",
+        "story": "18042769085830584"
       },
       "publish_feed": true,
       "failures": [
@@ -556,7 +557,8 @@
           "where": "story",
           "message": "HTTP 400: Media ID is not available"
         }
-      ]
+      ],
+      "publish_story": true
     }
   },
   "posted_files": [

@@ -559,6 +559,16 @@
         }
       ],
       "publish_story": true
+    },
+    "2026-10-15": {
+      "token_refreshed": true,
+      "media_of_day": "bdfc6260aabf27dc4b708e081125403d.jpg",
+      "published_media": {
+        "feed": "18112510736143706",
+        "story": "18093281435671793"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -592,7 +602,8 @@
     "afc237d532fb07a751d1897ffa39e2da.jpg",
     "attitude-02.mp4",
     "b61887bb56b09a1771bbabccc7f67465.jpg",
-    "b7b0bc39c8ad19ee17108945cad0f28a.jpg"
+    "b7b0bc39c8ad19ee17108945cad0f28a.jpg",
+    "bdfc6260aabf27dc4b708e081125403d.jpg"
   ],
   "engagement": {
     "permissions_missing": [],

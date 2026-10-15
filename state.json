@@ -599,21 +599,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-14",
+    "date": "2026-10-15",
     "trending_now": [
-      "nofilterselfie",
-      "queenmindset",
-      "cutesy",
+      "fierce",
+      "coquette",
       "indianoutfit",
-      "dailyreels"
+      "beachday",
+      "growwithreels"
     ],
-    "queue_remaining": 9,
-    "next_file": "b7b0bc39c8ad19ee17108945cad0f28a.jpg",
+    "queue_remaining": 8,
+    "next_file": "bdfc6260aabf27dc4b708e081125403d.jpg",
     "vibe": "general",
     "is_video": false,
     "music_track": {
-      "id": "chill-nature",
-      "mood": "chill"
+      "id": "coffee-aesthetic",
+      "mood": "coffee"
     },
     "token_days_left": null,
     "festival": null

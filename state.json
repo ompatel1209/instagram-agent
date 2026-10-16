@@ -610,20 +610,20 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-15",
+    "date": "2026-10-16",
     "trending_now": [
-      "fierce",
-      "coquette",
-      "indianoutfit",
-      "beachday",
-      "growwithreels"
+      "babyme",
+      "fashiondiaries",
+      "travelindia",
+      "betterself",
+      "instadiscover"
     ],
-    "queue_remaining": 8,
-    "next_file": "bdfc6260aabf27dc4b708e081125403d.jpg",
-    "vibe": "general",
-    "is_video": false,
+    "queue_remaining": 7,
+    "next_file": "cute-39.mp4",
+    "vibe": "cute",
+    "is_video": true,
     "music_track": {
-      "id": "coffee-aesthetic",
+      "id": "coffee-aesthetic-b",
       "mood": "coffee"
     },
     "token_days_left": null,

@@ -623,21 +623,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-16",
+    "date": "2026-10-17",
     "trending_now": [
-      "babyme",
-      "fashiondiaries",
-      "travelindia",
-      "betterself",
-      "instadiscover"
+      "desigirl",
+      "sunsetchaser",
+      "romanticizeyourlife",
+      "lifestyleblogger",
+      "reelsvideo"
     ],
-    "queue_remaining": 7,
-    "next_file": "cute-39.mp4",
-    "vibe": "cute",
-    "is_video": true,
+    "queue_remaining": 6,
+    "next_file": "ebc40977d4e538d25794fffb8d9cf3b8.jpg",
+    "vibe": "general",
+    "is_video": false,
     "music_track": {
-      "id": "coffee-aesthetic-b",
-      "mood": "coffee"
+      "id": "flowers-nature",
+      "mood": "flowers"
     },
     "token_days_left": null,
     "festival": null

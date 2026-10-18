@@ -634,23 +634,27 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-17",
+    "date": "2026-10-18",
     "trending_now": [
-      "desigirl",
-      "sunsetchaser",
-      "romanticizeyourlife",
-      "lifestyleblogger",
-      "reelsvideo"
+      "travellover",
+      "innerpeace",
+      "dailyinspo",
+      "freshface",
+      "newpost"
     ],
-    "queue_remaining": 6,
-    "next_file": "ebc40977d4e538d25794fffb8d9cf3b8.jpg",
+    "queue_remaining": 5,
+    "next_file": "f2831fd12a6a52625175a069fc6fc32c.jpg",
     "vibe": "general",
     "is_video": false,
     "music_track": {
-      "id": "flowers-nature",
+      "id": "flowers-nature-b",
       "mood": "flowers"
     },
     "token_days_left": null,
-    "festival": null
+    "festival": {
+      "id": "durga-ashtami",
+      "name": "Durga Ashtami",
+      "vibe": "attitude"
+    }
   }
 }

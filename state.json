@@ -591,6 +591,16 @@
       },
       "publish_feed": true,
       "publish_story": true
+    },
+    "2026-10-18": {
+      "token_refreshed": true,
+      "media_of_day": "f2831fd12a6a52625175a069fc6fc32c.jpg",
+      "published_media": {
+        "feed": "18435319381180364",
+        "story": "17961173295217836"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -627,7 +637,8 @@
     "b7b0bc39c8ad19ee17108945cad0f28a.jpg",
     "bdfc6260aabf27dc4b708e081125403d.jpg",
     "cute-39.mp4",
-    "ebc40977d4e538d25794fffb8d9cf3b8.jpg"
+    "ebc40977d4e538d25794fffb8d9cf3b8.jpg",
+    "f2831fd12a6a52625175a069fc6fc32c.jpg"
   ],
   "engagement": {
     "permissions_missing": [],

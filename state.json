@@ -656,23 +656,27 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-19",
+    "date": "2026-10-20",
     "trending_now": [
-      "treatyourself",
-      "goodvibesonly",
-      "selfiegame",
-      "independentwoman",
-      "explorepage"
+      "contentcreator",
+      "justme",
+      "sassyqueen",
+      "pastelvibes",
+      "reelsdaily"
     ],
-    "queue_remaining": 4,
-    "next_file": "f6f16e724cc29f77645210ca4abaf090.jpg",
+    "queue_remaining": 3,
+    "next_file": "fee17e147a9ee8cf95d29f40d272df00.jpg",
     "vibe": "general",
     "is_video": false,
     "music_track": {
-      "id": "henna-ambience",
+      "id": "henna-ambience-b",
       "mood": "henna"
     },
     "token_days_left": null,
-    "festival": null
+    "festival": {
+      "id": "dussehra",
+      "name": "Dussehra",
+      "vibe": "attitude"
+    }
   }
 }

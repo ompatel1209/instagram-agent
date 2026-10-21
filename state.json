@@ -667,27 +667,23 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-20",
+    "date": "2026-10-21",
     "trending_now": [
-      "contentcreator",
-      "justme",
-      "sassyqueen",
-      "pastelvibes",
-      "reelsdaily"
+      "dailyselfie",
+      "selfmadewoman",
+      "adorablegirl",
+      "stylediaries",
+      "explore"
     ],
-    "queue_remaining": 3,
-    "next_file": "fee17e147a9ee8cf95d29f40d272df00.jpg",
-    "vibe": "general",
-    "is_video": false,
+    "queue_remaining": 2,
+    "next_file": "ootd-32.mp4",
+    "vibe": "ootd",
+    "is_video": true,
     "music_track": {
-      "id": "henna-ambience-b",
-      "mood": "henna"
+      "id": "indian-dance-instrumental",
+      "mood": "indian"
     },
     "token_days_left": null,
-    "festival": {
-      "id": "dussehra",
-      "name": "Dussehra",
-      "vibe": "attitude"
-    }
+    "festival": null
   }
 }

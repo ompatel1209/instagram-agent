@@ -621,6 +621,18 @@
       },
       "publish_feed": true,
       "publish_story": true
+    },
+    "2026-10-21": {
+      "token_refreshed": true,
+      "media_of_day": "ootd-32.mp4",
+      "published_media": {
+        "feed": "17894653578613603",
+        "reel": "17894653578613603",
+        "story": "17925901065427623"
+      },
+      "publish_feed": true,
+      "publish_reel": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -660,7 +672,8 @@
     "ebc40977d4e538d25794fffb8d9cf3b8.jpg",
     "f2831fd12a6a52625175a069fc6fc32c.jpg",
     "f6f16e724cc29f77645210ca4abaf090.jpg",
-    "fee17e147a9ee8cf95d29f40d272df00.jpg"
+    "fee17e147a9ee8cf95d29f40d272df00.jpg",
+    "ootd-32.mp4"
   ],
   "engagement": {
     "permissions_missing": [],

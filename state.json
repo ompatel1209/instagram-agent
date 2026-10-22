@@ -680,20 +680,20 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-21",
+    "date": "2026-10-22",
     "trending_now": [
-      "dailyselfie",
-      "selfmadewoman",
-      "adorablegirl",
-      "stylediaries",
-      "explore"
+      "classywoman",
+      "cozyvibes",
+      "instastyle",
+      "beachday",
+      "reelsdaily"
     ],
-    "queue_remaining": 2,
-    "next_file": "ootd-32.mp4",
+    "queue_remaining": 1,
+    "next_file": "ootd-44.mp4",
     "vibe": "ootd",
     "is_video": true,
     "music_track": {
-      "id": "indian-dance-instrumental",
+      "id": "indian-dance-instrumental-b",
       "mood": "indian"
     },
     "token_days_left": null,

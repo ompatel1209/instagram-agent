@@ -645,6 +645,15 @@
       "publish_feed": true,
       "publish_reel": true,
       "publish_story": true
+    },
+    "2026-10-23": {
+      "token_refreshed": true,
+      "published_media": {
+        "feed": "17911836801311095",
+        "story": "18132152086815752"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [

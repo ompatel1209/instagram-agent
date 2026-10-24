@@ -654,6 +654,15 @@
       },
       "publish_feed": true,
       "publish_story": true
+    },
+    "2026-10-24": {
+      "token_refreshed": true,
+      "published_media": {
+        "feed": "18106296518313320",
+        "story": "17957358174260384"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [

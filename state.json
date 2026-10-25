@@ -745,6 +745,38 @@
           "message": "list conversations failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
         }
       ]
+    },
+    "2026-10-25": {
+      "failures": [
+        {
+          "where": "engagement",
+          "message": "live media lookup failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons.; sweeping all recorded ids"
+        },
+        {
+          "where": "engagement",
+          "message": "list comments on 18106296518313320 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "engagement",
+          "message": "list comments on 17911836801311095 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "engagement",
+          "message": "list comments on 18111246677336728 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "engagement",
+          "message": "list comments on 17894653578613603 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "engagement",
+          "message": "list comments on 18114514256610309 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "engagement",
+          "message": "list conversations failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        }
+      ]
     }
   },
   "posted_files": [

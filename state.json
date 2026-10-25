@@ -853,21 +853,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-24",
+    "date": "2026-10-25",
     "trending_now": [
-      "indianwear",
-      "travelphotography",
-      "peacefulmind",
-      "justvibes",
-      "growwithreels"
+      "travelindia",
+      "selfloveclub",
+      "aestheticfeed",
+      "nofilterselfie",
+      "viral"
     ],
     "queue_remaining": 0,
     "next_file": null,
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "rain-window-b",
-      "mood": "rain"
+      "id": "sunset-nature",
+      "mood": "sunset"
     },
     "token_days_left": null,
     "festival": null

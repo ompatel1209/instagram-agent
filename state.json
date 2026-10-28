@@ -1086,21 +1086,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-27",
+    "date": "2026-10-28",
     "trending_now": [
-      "postoftheday",
-      "instapic",
-      "savagequeen",
-      "cutecore",
-      "explorepage"
+      "nofilterselfie",
+      "boldandbeautiful",
+      "adorablegirl",
+      "instastyle",
+      "reelsinstagram"
     ],
     "queue_remaining": 0,
     "next_file": null,
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "ambient-guitar",
-      "mood": "ambient"
+      "id": "candle-flame",
+      "mood": "candle"
     },
     "token_days_left": null,
     "festival": null

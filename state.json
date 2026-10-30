@@ -1288,27 +1288,23 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-29",
+    "date": "2026-10-30",
     "trending_now": [
-      "thatgirl",
-      "adorablegirl",
-      "styleoftheday",
-      "solotravel",
-      "explorepage"
+      "girlycore",
+      "indianwear",
+      "incredibleindia",
+      "mentalhealthmatters",
+      "reelsinstagram"
     ],
     "queue_remaining": 0,
     "next_file": null,
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "candle-flame-b",
+      "id": "candle-flame-c",
       "mood": "candle"
     },
     "token_days_left": null,
-    "festival": {
-      "id": "karva-chauth",
-      "name": "Karva Chauth",
-      "vibe": "ootd"
-    }
+    "festival": null
   }
 }

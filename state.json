@@ -1375,20 +1375,20 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-30",
+    "date": "2026-10-31",
     "trending_now": [
-      "girlycore",
-      "indianwear",
-      "incredibleindia",
-      "mentalhealthmatters",
-      "reelsinstagram"
+      "everydaystyle",
+      "sunsetchaser",
+      "glowupjourney",
+      "justvibes",
+      "trending"
     ],
     "queue_remaining": 0,
     "next_file": null,
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "candle-flame-c",
+      "id": "candle-flame-d",
       "mood": "candle"
     },
     "token_days_left": null,

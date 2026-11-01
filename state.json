@@ -1462,12 +1462,12 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-10-31",
+    "date": "2026-11-01",
     "trending_now": [
-      "everydaystyle",
-      "sunsetchaser",
-      "glowupjourney",
-      "justvibes",
+      "traveladdict",
+      "becomeher",
+      "aestheticfeed",
+      "glowyskin",
       "trending"
     ],
     "queue_remaining": 0,
@@ -1475,8 +1475,8 @@
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "candle-flame-d",
-      "mood": "candle"
+      "id": "chill-nature",
+      "mood": "chill"
     },
     "token_days_left": null,
     "festival": null

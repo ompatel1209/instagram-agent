@@ -1549,21 +1549,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-11-01",
+    "date": "2026-11-02",
     "trending_now": [
-      "traveladdict",
-      "becomeher",
-      "aestheticfeed",
-      "glowyskin",
-      "trending"
+      "selfimprovement",
+      "girldaily",
+      "selfienation",
+      "sassygirl",
+      "dailyreels"
     ],
     "queue_remaining": 0,
     "next_file": null,
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "chill-nature",
-      "mood": "chill"
+      "id": "coffee-aesthetic",
+      "mood": "coffee"
     },
     "token_days_left": null,
     "festival": null

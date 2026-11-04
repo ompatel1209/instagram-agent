@@ -1695,21 +1695,21 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-11-03",
+    "date": "2026-11-04",
     "trending_now": [
-      "everydaylife",
-      "candidselfie",
-      "attitudequeen",
-      "dreamygirl",
-      "viralreels"
+      "mirrorselfie",
+      "thatgirlenergy",
+      "cutest",
+      "instastyle",
+      "growwithreels"
     ],
     "queue_remaining": 0,
     "next_file": null,
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "coffee-aesthetic-b",
-      "mood": "coffee"
+      "id": "flowers-nature",
+      "mood": "flowers"
     },
     "token_days_left": null,
     "festival": null

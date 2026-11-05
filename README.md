@@ -104,6 +104,20 @@ post succeeded but the story failed, only the story is retried.
 - No LLM APIs — content comes from a curated bank of 120 quotes + 60 tips
   (~6 months of unique daily posts before anything repeats).
 
+## Project layout
+
+```
+src/        the agent: content tiers, renderer, IG client, token, alerts, engagement AI
+content/    caption/tag/reply/music/festival banks (committed, edited by you)
+scripts/    media-branch + state push helpers (called by workflows & src)
+webhook/    optional Cloudflare worker for instant AI replies (wrangler)
+tests/      standalone suites — python3 tests/test_X.py (exit 0 = pass) or pytest
+assets/     fonts for the quote/tip graphics renderer
+uploads/    your local staging folder (files queue onto the media branch)
+state.json  production ledger (per-day idempotency) — committed to main, never hand-edit casually
+config.json palette, handle, repo coordinates, base hashtags
+```
+
 ## Troubleshooting
 - **Run skipped/failed**: Actions tab → click the failed run → read the
   [ig-agent] log lines. The 3 PM safety re-run retries automatically.

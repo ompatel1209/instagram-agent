@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI reply playground</title>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; color: #222; }
+  h1 { font-size: 1.3rem; }
+  .mode { display: flex; gap: 8px; margin-bottom: 12px; }
+  .mode button { flex: 1; padding: 8px; border: 1px solid #ccc; background: #fff; border-radius: 8px; cursor: pointer; }
+  .mode button.on { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+  textarea { width: 100%; box-sizing: border-box; height: 92px; border: 1px solid #ccc; border-radius: 8px; padding: 8px; font: inherit; }
+  button.go { width: 100%; padding: 10px; margin-top: 8px; border: 0; border-radius: 8px; background: #db2779; color: #fff; font-weight: 600; cursor: pointer; }
+  .out { margin-top: 14px; border: 1px solid #eee; border-radius: 8px; padding: 12px; min-height: 60px; background: #fafafa; white-space: pre-wrap; }
+  .meta { margin-top: 6px; font-size: .8rem; color: #666; }
+</style>
+</head>
+<body>
+  <h1>AI reply playground <small style="font-weight:400">(test what the agent would post)</small></h1>
+  <div class="mode">
+    <button id="c" class="on" onclick="mode('comment', this)">💬 Comment reply</button>
+    <button id="d" onclick="mode('dm', this)">✉️ DM reply</button>
+  </div>
+  <textarea id="text" placeholder='Type the incoming comment or DM, e.g. "kya kar rahi ho cutie"'></textarea>
+  <button class="go" onclick="send()">Get AI reply</button>
+  <div class="out" id="out">Reply appears here…</div>
+  <div class="meta" id="meta"></div>
+<script>
+let kind = "comment";
+function mode(k, btn) { kind = k; for (const b of document.querySelectorAll(".mode button")) b.classList.remove("on"); btn.classList.add("on"); }
+async function send() {
+  const out = document.getElementById("out"), meta = document.getElementById("meta");
+  const text = document.getElementById("text").value.trim();
+  if (!text) { meta.textContent = "Type something first."; return; }
+  out.textContent = "thinking…"; meta.textContent = "";
+  try {
+    const r = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind, text })
+    });
+    const j = await r.json();
+    if (!r.ok) { out.textContent = "—"; meta.textContent = "Error: " + (j.error || r.status); return; }
+    out.textContent = j.reply;
+    meta.textContent = `(${j.source === "nvidia-nim" ? "AI · " + j.personality : "bank fallback"} · category: ${j.category})`;
+  } catch (e) { out.textContent = "—"; meta.textContent = "server not reachable: " + e; }
+}
+</script>
+</body>
+</html>

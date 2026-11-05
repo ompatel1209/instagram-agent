@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 .venv/
+.pytest_cache/
 
 # Local previews and build output
 preview/
@@ -13,5 +14,25 @@ uploads/
 # Never commit secrets
 .env
 
+# NVIDIA NIM key for the local server.py playground (paste your own)
+config.local.json
+
 # OS
 .DS_Store
+
+# Ruflo local secrets and runtime data
+.env.local
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/
+
+# Codex local configuration
+.codex/
+
+# Agent-harness scaffolding (local-only: hooks, agents, memory, swarms)
+.agents/
+.claude/
+.claude-flow/
+.swarm/
+CLAUDE.md

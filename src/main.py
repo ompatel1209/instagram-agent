@@ -300,8 +300,22 @@ def run_upload_day(cfg: dict, date: dt.date, date_str: str, st: dict,
         # --- Photo: padded feed post + Story ---------------------------------
         feed_path = out_dir / f"{date_str}-feed.jpg"
         story_path = out_dir / f"{date_str}-story.jpg"
-        render.render_upload_feed(src_path, cfg["palette"], feed_path)
-        render.render_upload_story(src_path, cfg["palette"], story_path)
+        try:
+            render.render_upload_feed(src_path, cfg["palette"], feed_path)
+            render.render_upload_story(src_path, cfg["palette"], story_path)
+        except Exception as e:
+            # An unrenderable file (corrupt image, HEIC without a decoder)
+            # would crash every future run while it stays pinned as
+            # media_of_day — wedging the whole queue behind it. Release it
+            # (posted ledger + failure note) and let the chain fall through
+            # to the stock/quote tiers so today still posts.
+            log(f"ERROR: {filename} could not be rendered ({e}) — skipping "
+                "the file so the queue can advance")
+            state.note_failure(st, date_str, "upload_skip",
+                               f"{filename} render failed — skipped: {e}")
+            state.mark_file_posted(st, filename)
+            state.save(st)
+            return -1
 
         ok_feed, ok_story = push_media(cfg, date_str)
         if not (ok_feed and ok_story):
@@ -368,16 +382,21 @@ def run_stock_day(cfg: dict, date: dt.date, date_str: str, st: dict,
         return -1
 
     # Idempotent re-run: look up the already-pinned photo for this date.
+    # A lookup failure (photo deleted on Pexels, network glitch) used to
+    # demote the whole day to quotes — re-pick instead: the search never
+    # contains the dead id (used_stock_ids includes it), so the pick stays
+    # no-repeat, and re-pinning keeps later re-runs idempotent.
     pinned = state.stock_of_day(st, date_str)
+    photo = None
     if pinned:
         fresh = pexels.photo_by_id(api_key, pinned["id"])
-        if not fresh:
-            log(f"ERROR: pinned stock photo #{pinned['id']} not fetchable — "
-                "falling back to quotes")
-            return -1
-        photo = {**fresh, "vibe": pinned["vibe"]}
-        log(f"resuming stock day with photo #{photo['id']} (idempotent re-run)")
-    else:
+        if fresh:
+            photo = {**fresh, "vibe": pinned["vibe"]}
+            log(f"resuming stock day with photo #{photo['id']} "
+                "(idempotent re-run)")
+        else:
+            log(f"pinned stock photo #{pinned['id']} not fetchable — re-picking")
+    if not photo:
         photo = pexels.pick_photo(api_key, date, state.used_stock_ids(st))
         if not photo:
             log("no stock photo available today — falling back to quotes")

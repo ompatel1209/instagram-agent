@@ -27,7 +27,7 @@ import json
 import random
 
 from . import ai, alerts, instagram, state
-from .config import CONTENT_DIR, load_config
+from .config import CONTENT_DIR, load_config, ist_today
 
 # Bounds so an hourly run can never spam: at most this many replies per run.
 MAX_COMMENT_REPLIES = 10
@@ -404,7 +404,9 @@ def run() -> None:
     if not cfg.get("access_token") or not cfg.get("ig_user_id"):
         print("engagement: IG_ACCESS_TOKEN/IG_USER_ID not set — skipping")
         return
-    today_str = dt.date.today().isoformat()
+    # IST date, not the runner's local (UTC) date — the per-day DM guard
+    # and today's reply ledger are keyed on the account's own calendar.
+    today_str = ist_today().isoformat()
     st = state.load()
     bank = load_bank()
 

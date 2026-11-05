@@ -116,22 +116,6 @@ def publish(token: str, ig_user_id: str, container_id: str) -> str:
     return str(mid)
 
 
-def video_duration_seconds(url: str, local_path=None) -> float | None:
-    """ffprobe a video's duration via the system ffmpeg (preinstalled on
-    ubuntu runners). Returns None if probing fails (caller decides)."""
-    import subprocess as _sp
-    target = ["-i", str(local_path)] if local_path else ["-i", url]
-    try:
-        out = _sp.run(
-            ["ffprobe", "-v", "error", *target, "-show_entries",
-             "format=duration", "-of", "default=noprint_wrappers=1:nokey=1"],
-            capture_output=True, text=True, timeout=60, check=True,
-        ).stdout.strip()
-        return float(out)
-    except Exception:
-        return None
-
-
 def publishing_limit(token: str, ig_user_id: str) -> dict:
     """GET content_publishing_limit — quota info for the 24h window."""
     r = requests.get(

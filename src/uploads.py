@@ -15,7 +15,6 @@ import urllib.parse
 def _repo_slug() -> str:
     slug = os.environ.get("GITHUB_REPOSITORY", "")
     if not slug:
-        import pathlib
         cfg_path = pathlib.Path(__file__).resolve().parent.parent / "config.json"
         with open(cfg_path, encoding="utf-8") as f:
             cfg = json.load(f)

@@ -6,7 +6,6 @@ the same content and the pair never repeats until the bank fully cycles.
 """
 import datetime as dt
 import json
-import random
 
 from .config import CONTENT_DIR
 
@@ -32,16 +31,10 @@ def day_index(date: dt.date) -> int:
 def pick(quotes: list[dict], tips: list[dict], date: dt.date) -> dict:
     """Deterministically pick the (quote, tip) pair for a date."""
     n = day_index(date)
-    quote = quotes[n % len(quotes)]
-    tip = tips[n % len(tips)]
-    # Per-date seed keeps any tie-breaking stable without repeats.
-    rng = random.Random(f"{date.isoformat()}")
     return {
         "date": date.isoformat(),
-        "quote": quote,
-        "tip": tip,
-        "seed": f"{date.isoformat()}",
-        "_rng_shuffled": rng.random(),  # reserved; selection is bank-order based
+        "quote": quotes[n % len(quotes)],
+        "tip": tips[n % len(tips)],
     }
 
 

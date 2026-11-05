@@ -28,12 +28,7 @@ def day(state: dict, date_str: str) -> dict:
 
 def mark(state: dict, date_str: str, step: str, value=None) -> None:
     """Record a successful step (idempotency flag)."""
-    d = day(state, date_str)
-    d[step] = value if value is not None else True
-    if "published_media" not in d:
-        d["published_media"] = {}
-    if step.startswith("publish_"):
-        d.setdefault("published_media", {})
+    day(state, date_str)[step] = value if value is not None else True
 
 
 def record_media_id(state: dict, date_str: str, kind: str, media_id: str) -> None:

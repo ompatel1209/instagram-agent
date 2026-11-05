@@ -97,11 +97,10 @@ def is_video(filename: str) -> bool:
 def pick(bank: dict, vibe: str, date: dt.date) -> dict:
     """Deterministically pick the caption for a date (stable on re-runs)."""
     entries = bank.get(vibe) or bank["general"]
-    rng = random.Random(f"{date.isoformat()}:{vibe}")
     captions = entries["captions"]
-    n = dt.date.fromisoformat(date.isoformat()).toordinal() - dt.date(2026, 9, 2).toordinal()
+    n = date.toordinal() - dt.date(2026, 9, 2).toordinal()
     caption = captions[n % len(captions)]
-    return {"caption": caption, "hashtags": entries["hashtags"], "rng": rng}
+    return {"caption": caption, "hashtags": entries["hashtags"]}
 
 
 def format_caption(caption: str, tags: list[str]) -> str:

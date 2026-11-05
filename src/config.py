@@ -1,4 +1,5 @@
 """Configuration loading: config.json merged with environment secrets."""
+import datetime as dt
 import json
 import os
 import pathlib
@@ -9,6 +10,16 @@ STATE_PATH = ROOT / "state.json"
 CONTENT_DIR = ROOT / "content"
 FONTS_DIR = ROOT / "assets" / "fonts"
 PREVIEW_DIR = ROOT / "preview"
+
+IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
+
+
+def ist_today() -> dt.date:
+    """Today in IST — the account's own calendar. Runners' local dates are
+    UTC, which lags IST between 18:30–24:00 UTC (00:00–05:30 IST); day-keyed
+    bookkeeping outside main/refresh's publishing flow uses this instead of
+    dt.date.today() so per-day guards align with the IST day."""
+    return dt.datetime.now(IST).date()
 
 
 def load_config() -> dict:

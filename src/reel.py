@@ -27,7 +27,7 @@ import time
 import requests
 
 from . import captions as captions_mod
-from . import instagram, music, pexels, state
+from . import instagram, music, pexels, state, trending
 from .config import reel_url
 
 
@@ -50,10 +50,17 @@ def _wait_fetchable(url: str, tries: int = 20, delay: int = 15) -> bool:
 
 
 def _caption(cfg: dict, date: dt.date, video: dict) -> str:
-    """Girly caption matching the day's vibe + Pexels credits."""
+    """Girly caption matching the day's vibe + trending tags + credits.
+
+    Goes through trending.caption_tags like the feed tiers, so a Reel gets
+    the same day's AI/rotation window instead of the static bank alone.
+    """
     vibe = video.get("vibe") or "general"
     bank = captions_mod.load_bank()
-    caption = captions_mod.caption_text(bank, vibe, date, cfg["hashtags"])
+    picked = captions_mod.pick(bank, vibe, date)
+    tags = trending.caption_tags(vibe, date, picked["hashtags"],
+                                 cfg["hashtags"])
+    caption = captions_mod.format_caption(picked["caption"], tags)
     return caption + (
         f"\n\n🎥 {video.get('photographer', 'Pexels')} on Pexels"
         f"\n🎵 Music: Pexels"
@@ -72,15 +79,20 @@ def run(cfg: dict, date: dt.date, date_str: str, st: dict, out_dir) -> bool:
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Resume with the pinned pick when a re-run needs to redo a step.
+    # Resume with the pinned pick when a re-run needs to redo a step. A
+    # lookup failure (video deleted on Pexels, network glitch) re-picks —
+    # the search never contains the dead id (used_reel_ids includes it), so
+    # the pick stays no-repeat and the reel slot can't spin on a dead id.
     pinned = state.reel_of_day(st, date_str)
+    video = None
     if pinned:
         video = pexels.video_by_id(cfg["pexels_api_key"], pinned["id"])
-        if not video:
-            print(f"reel: pinned video {pinned['id']} lookup failed")
-            return False
-        video["vibe"] = pinned.get("vibe")
-    else:
+        if video:
+            video["vibe"] = pinned.get("vibe")
+            print(f"reel: resuming pinned video {video['id']}")
+        else:
+            print(f"reel: pinned video {pinned['id']} lookup failed — re-picking")
+    if not video:
         video = pexels.pick_video(cfg["pexels_api_key"], date,
                                   state.used_reel_ids(st))
         if not video:

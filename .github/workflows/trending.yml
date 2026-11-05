@@ -41,6 +41,7 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT != '' && secrets.GH_PAT || github.token }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         run: python -m src.refresh
 
       - name: Push state + hashtags to main

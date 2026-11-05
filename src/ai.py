@@ -1,7 +1,8 @@
-"""AI chat voice: NVIDIA NIM (meta/muse-glimmer-30b) for DM + comment replies.
+"""AI voice + hashtags: NVIDIA NIM (meta/muse-glimmer-30b).
 
-OpenAI-compatible REST client against integrate.api.nvidia.com. The model
-is a REASONING model: chain-of-thought lands in message.reasoning_content
+Comment/DM replies (generate_reply) and daily post hashtags
+(generate_hashtags) share this OpenAI-compatible client against
+integrate.api.nvidia.com. The model is a REASONING model: chain-of-thought lands in message.reasoning_content
 and the user-facing answer in message.content, which is null until
 reasoning finishes — so max_tokens is sized for the reasoning overhead
 (~300 tokens) BEFORE the answer. Validated live: budget 2000 finishes
@@ -22,11 +23,14 @@ budget exhausted) returns None and the caller falls back to the reply
 bank. The AI key is NVIDIA_API_KEY in the environment — never in
 config.json or any repo file (public repo).
 """
-import datetime as dt
+import json
 import os
 import random
+import re
 
 import requests
+
+from .config import ist_today
 
 NIM_BASE = "https://integrate.api.nvidia.com/v1"
 MODEL = "meta/muse-glimmer-30b"
@@ -124,15 +128,15 @@ def personality_for(seed: str, category: str | None = None) -> str:
 
 
 def _budget_ok(st: dict) -> bool:
-    """True when today's NIM token spend is under the daily cap."""
-    spent = st.get(AI_BUDGET_STATE_KEY, {}).get(dt.date.today().isoformat())
+    """True when today's NIM token spend is under the daily cap (IST day)."""
+    spent = st.get(AI_BUDGET_STATE_KEY, {}).get(ist_today().isoformat())
     return spent is None or spent < AI_DAILY_TOKEN_CAP
 
 
 def _spend_tokens(st: dict, n: int) -> None:
     """Record NIM tokens used today; keep only the newest 7 day-rows so
     state.json stays small (state.save happens in the engagement flow)."""
-    today = dt.date.today().isoformat()
+    today = ist_today().isoformat()
     rows = st.setdefault(AI_BUDGET_STATE_KEY, {})
     rows[today] = rows.get(today, 0) + n
     if len(rows) > 7:
@@ -206,3 +210,93 @@ def generate_reply(personality: str, language: str, message: str,
         return str(content)
     except Exception:
         return None  # network error, bad JSON, timeout — reply bank, no raise
+
+
+# --- trending hashtags ----------------------------------------------------
+# Same client, same budget. The model is shown today's live search terms and
+# asked to keep only the ones that fit the post — it never has to "know" what
+# is trending (its training data is stale and would hallucinate tags).
+
+_TAG_ARRAY = re.compile(r"\[[^\]]*\]")
+_WORD_TAG = re.compile(r"#?[A-Za-z][A-Za-z0-9_]{1,29}")
+
+
+def _tags_from(content: str) -> list[str]:
+    """Model output -> raw tag strings. Tolerates fences, prose, bare words."""
+    raw: list[str] = []
+    match = _TAG_ARRAY.search(content or "")
+    if match:
+        try:
+            data = json.loads(match.group(0))
+            if isinstance(data, list):
+                raw = [str(x) for x in data]
+        except ValueError:
+            raw = []
+    if not raw:
+        raw = re.findall(r"#([A-Za-z0-9_]{2,30})", content or "")
+    if not raw:
+        raw = _WORD_TAG.findall(content or "")
+    return raw
+
+
+def generate_hashtags(vibe: str, live_terms: list[str], caption: str = "",
+                      count: int = 5, api_key: str | None = None,
+                      st: dict | None = None) -> list[str] | None:
+    """NIM -> raw hashtag strings for a post, or None on any failure.
+
+    live_terms: today's trending searches (src/trends.live_terms). Empty
+    means there is no trend signal, so return None and let the caller keep
+    its curated rotation. Policy (charset, banned tags, dedupe, cap) is
+    src/trending.sanitize — this function only talks to the model.
+    """
+    key = api_key or os.environ.get("NVIDIA_API_KEY", "")
+    if not key or not live_terms:
+        return None
+    if st is not None and not _budget_ok(st):
+        return None
+
+    prompt = (
+        f"Today's live trending searches (India): "
+        f"{', '.join(str(t) for t in live_terms[:15])}\n"
+        f"Instagram post vibe: {vibe}\n"
+        f"Caption: {caption[:300]}\n\n"
+        f"Pick {count} Instagram hashtags for this post.\n"
+        "Rules: lowercase, no #, no spaces, English or Hinglish, max 30 "
+        "characters. Use 0-2 tags riffing on the trending searches above — "
+        "most of them are sport, news or politics and will NOT fit a "
+        "lifestyle post, so skip them entirely rather than forcing one. "
+        "The rest must suit the post's niche. Real tags people search — "
+        "never follow-for-follow spam.\n"
+        "Return ONLY a JSON array of strings."
+    )
+    try:
+        r = requests.post(
+            f"{NIM_BASE}/chat/completions",
+            headers={"Authorization": f"Bearer {key}",
+                     "Content-Type": "application/json"},
+            json={"model": MODEL,
+                  "messages": [
+                      {"role": "system",
+                       "content": "You are an Instagram growth strategist."},
+                      {"role": "user", "content": prompt},
+                  ],
+                  "max_tokens": MAX_TOKENS,
+                  "temperature": 0.7},
+            timeout=TIMEOUT,
+        )
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        choice = (data.get("choices") or [{}])[0]
+        if choice.get("finish_reason") != "stop":
+            return None
+        content = (choice.get("message") or {}).get("content")
+        if not content or not str(content).strip():
+            return None
+        if st is not None:
+            used = (data.get("usage") or {}).get("total_tokens", 0)
+            _spend_tokens(st, int(used or 0))
+        tags = _tags_from(str(content))
+        return tags or None
+    except Exception:
+        return None

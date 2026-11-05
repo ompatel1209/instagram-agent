@@ -204,6 +204,47 @@ def stage_window_is_capped():
     assert 0 < len(window) <= refresh.TRENDING_NOW_COUNT
 
 
+# ------------------------------------------------------- AI trend integration
+@test
+def stage_ai_tags_lead_the_window():
+    terms, gen = refresh.trends.live_terms, refresh.ai.generate_hashtags
+    refresh.trends.live_terms = lambda *a, **k: ["navratri", "ipl final"]
+    refresh.ai.generate_hashtags = (
+        lambda *a, **k: ["garbanight", "festivevibes", "dandiya"])
+    try:
+        st = state.load()
+        window = refresh._stage_trending_now(DATE, st, "festive")
+    finally:
+        refresh.trends.live_terms, refresh.ai.generate_hashtags = terms, gen
+    assert window[:3] == ["garbanight", "festivevibes", "dandiya"], window
+    assert len(window) <= refresh.TRENDING_NOW_COUNT
+    assert state.day(st, DATE_STR)["trending_source"] == "ai"
+    assert json.loads(HASHTAGS.read_text(encoding="utf-8"))["trending_now"] == window
+
+
+@test
+def stage_reuses_the_days_window_without_calling_ai_again():
+    calls = {"n": 0}
+    terms, gen = refresh.trends.live_terms, refresh.ai.generate_hashtags
+    refresh.trends.live_terms = lambda *a, **k: ["trend"]
+
+    def fake_gen(*a, **k):
+        calls["n"] += 1
+        return [f"ai{calls['n']}a", f"ai{calls['n']}b"]
+
+    refresh.ai.generate_hashtags = fake_gen
+    try:
+        st = state.load()
+        first = refresh._stage_trending_now(DATE, st, "cute")
+        _seed_pool()  # wipe the file, keep state: the guard must restore it
+        second = refresh._stage_trending_now(DATE, state.load(), "cute")
+    finally:
+        refresh.trends.live_terms, refresh.ai.generate_hashtags = terms, gen
+    assert first == second, (first, second)
+    assert calls["n"] == 1, "a re-run must not regenerate a published window"
+    assert json.loads(HASHTAGS.read_text(encoding="utf-8"))["trending_now"] == first
+
+
 @test
 def staged_window_surfaces_first_in_pick_trending():
     window = refresh._stage_trending_now(DATE)

@@ -6,6 +6,11 @@ pool in content/hashtags.json rotated by (date, vibe). Deterministic = the
 same day always injects the same tags, so a re-run of a day never changes its
 caption mid-flight, and the day's posts stay idempotent.
 
+The AI layer (src/ai.generate_hashtags + src/trends) feeds this same
+`trending_now` window from src/refresh.py once a day — sanitize() is the
+policy gate its output passes. No AI key or no live trends = the rotation
+below, unchanged.
+
 Selection shape per day: up to TRENDING_COUNT tags for the day's vibe, plus
 up to GLOBAL_COUNT from the global reach list, plus anything the Feature 2
 refresh workflow staged into "trending_now". Everything is deduped against
@@ -15,6 +20,7 @@ the final formatting.
 import datetime as dt
 import json
 import random
+import re
 
 from .config import CONTENT_DIR
 
@@ -50,6 +56,19 @@ def _clean(tags: list[str] | None) -> list[str]:
             seen.add(t)
             out.append(t)
     return out
+
+
+_TAG_RE = re.compile(r"^[a-z0-9_]{2,30}$")
+
+
+def sanitize(tags: list[str] | None, cap: int = 30) -> list[str]:
+    """Model-generated tags -> publishable: charset, banned, dedupe, cap.
+
+    The single policy gate for AI output: _clean handles case, '#', the
+    blocked list and duplicates; the regex rejects anything Instagram would
+    not read as one tag (spaces, emoji, punctuation).
+    """
+    return [t for t in _clean(tags) if _TAG_RE.match(t)][:cap]
 
 
 def _rotate(tags: list[str], n: int, seed: str, start: int) -> list[str]:

@@ -1,13 +1,16 @@
-"""AI voice + hashtags: NVIDIA NIM (meta/muse-glimmer-30b).
+"""AI voice + hashtags: NVIDIA NIM (nemotron-3.5-lightning-30b-a3b).
 
 Comment/DM replies (generate_reply) and daily post hashtags
 (generate_hashtags) share this OpenAI-compatible client against
-integrate.api.nvidia.com. The model is a REASONING model: chain-of-thought lands in message.reasoning_content
-and the user-facing answer in message.content, which is null until
-reasoning finishes — so max_tokens is sized for the reasoning overhead
-(~300 tokens) BEFORE the answer. Validated live: budget 2000 finishes
-with 'stop' and well-formed replies; thinking-disable kwargs are ignored
-by this endpoint, so never rely on them.
+integrate.api.nvidia.com.
+
+The model reasons before answering unless told not to: with thinking on
+it spends the whole token budget in reasoning_content and returns
+content: null, and it measured 45-60s per reply — at the old 60s timeout,
+so ~1 in 3 replies silently fell back to the static bank. Passing
+chat_template_kwargs {"thinking": false} turns reasoning off: measured
+1.1-2.8s per reply with the same language mirroring. That is what makes
+instant replies viable; the previous model ignored the flag entirely.
 
 Personalities (friendly/professional/funny/romantic/emotional/custom)
 and languages (auto/hindi/english/gujarati) map onto one system prompt.
@@ -33,9 +36,9 @@ import requests
 from .config import ist_today
 
 NIM_BASE = "https://integrate.api.nvidia.com/v1"
-MODEL = "meta/muse-glimmer-30b"
-TIMEOUT = 60  # reasoning models take ~10-30s; well under the 15-min job cap
-MAX_TOKENS = 2000  # ~300 reasoning + answer (validated: 'stop' at 2000)
+MODEL = "nvidia/nemotron-3.5-lightning-30b-a3b"
+TIMEOUT = 20  # thinking off = 1-3s; a hung call must not eat the sweep budget
+MAX_TOKENS = 400  # thinking off: answer only, no ~300-token reasoning overhead
 
 # Token guard-rail: engage.yml can fire 24x/day, so NIM spend stays bounded
 # even in a burst. Tracked in state.json under AI_BUDGET_STATE_KEY.
@@ -98,7 +101,10 @@ def system_prompt(personality: str = "friendly",
         f"{lang}\n"
         "Keep replies under 300 characters. Answer directly, no preamble.\n"
         "You are one person, the account owner @whoisaaniiiya — never say "
-        "you are an AI, a bot, or a language model."
+        "you are an AI, a bot, or a language model.\n"
+        "Never invent personal facts — age, city, relationship, plans, "
+        "possessions. You have none on record: deflect, or ask the other "
+        "person about theirs."
     )
 
 
@@ -190,7 +196,10 @@ def generate_reply(personality: str, language: str, message: str,
             json={"model": MODEL,
                   "messages": messages,
                   "max_tokens": MAX_TOKENS,
-                  "temperature": 0.8},
+                  "temperature": 0.8,
+                  # Without this the model burns the budget thinking and
+                  # returns content: null — see the module docstring.
+                  "chat_template_kwargs": {"thinking": False}},
             timeout=TIMEOUT,
         )
         if r.status_code != 200:
@@ -281,7 +290,8 @@ def generate_hashtags(vibe: str, live_terms: list[str], caption: str = "",
                       {"role": "user", "content": prompt},
                   ],
                   "max_tokens": MAX_TOKENS,
-                  "temperature": 0.7},
+                  "temperature": 0.7,
+                  "chat_template_kwargs": {"thinking": False}},
             timeout=TIMEOUT,
         )
         if r.status_code != 200:

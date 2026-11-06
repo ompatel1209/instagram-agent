@@ -143,14 +143,17 @@ async function nimReply(personality, text, history, env) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "meta/muse-glimmer-30b",
+        // Thinking disabled: without it this model reasons until the token
+        // budget runs out and returns content: null. Measured ~1-2s a reply.
+        model: "nvidia/nemotron-3.5-lightning-30b-a3b",
         messages,
-        max_tokens: 2000, // reasoning overhead ~300 tokens before content
+        max_tokens: 400,
         temperature: 0.8,
+        chat_template_kwargs: { thinking: false },
       }),
-      // Reasoning models take 10-30s; cap at 45s so a NIM hang can't eat
-      // the whole event batch (the sweep catches anything this drops).
-      signal: AbortSignal.timeout(45_000),
+      // 1-3s normal; a NIM hang must not eat the whole event batch (the
+      // hourly sweep catches anything this drops).
+      signal: AbortSignal.timeout(15_000),
     });
   } catch (e) {
     return null;
@@ -158,8 +161,7 @@ async function nimReply(personality, text, history, env) {
   if (!r.ok) return null;
   const data = await r.json().catch(() => null);
   if (!data) return null;
-  // Reasoning model: content exists only after reasoning completes;
-  // finish_reason "length" means truncated mid-answer — scrap it.
+  // finish_reason "length" = truncated answer — scrap it and fall back.
   if (data.choices?.[0]?.finish_reason !== "stop") return null;
   return data.choices[0].message?.content || null;
 }

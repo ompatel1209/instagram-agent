@@ -1,0 +1,80 @@
+name: Deploy instant-reply worker
+
+# Deploys webhook/worker.js to Cloudflare and syncs its secrets from the
+# GitHub secrets the rest of the agent already uses — so refreshing
+# IG_ACCESS_TOKEN once (here) also updates the worker, instead of a second
+# manual `wrangler secret put` every ~60 days.
+#
+# One-time setup (repo Settings -> Secrets and variables -> Actions):
+#   CLOUDFLARE_API_TOKEN   Workers Scripts:Edit + Account Settings:Read
+#   CLOUDFLARE_ACCOUNT_ID  dashboard -> Workers & Pages -> right sidebar
+#   WEBHOOK_VERIFY_TOKEN   invent a long random string; paste the SAME value
+#                          into Meta's webhook form
+# Optional:
+#   APP_SECRET             enables X-Hub-Signature-256 checking
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: instagram-webhook-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Fail fast on missing secrets
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          VERIFY: ${{ secrets.WEBHOOK_VERIFY_TOKEN }}
+        run: |
+          missing=""
+          [ -z "$CF_TOKEN" ] && missing="$missing CLOUDFLARE_API_TOKEN"
+          [ -z "$CF_ACCOUNT" ] && missing="$missing CLOUDFLARE_ACCOUNT_ID"
+          [ -z "$VERIFY" ] && missing="$missing WEBHOOK_VERIFY_TOKEN"
+          if [ -n "$missing" ]; then
+            echo "::error::missing repo secret(s):$missing"
+            exit 1
+          fi
+
+      - name: Deploy worker
+        working-directory: webhook
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@latest deploy
+
+      - name: Sync worker secrets
+        working-directory: webhook
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          WEBHOOK_VERIFY_TOKEN: ${{ secrets.WEBHOOK_VERIFY_TOKEN }}
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+        run: |
+          set -euo pipefail
+          put() {
+            if [ -n "${2:-}" ]; then
+              printf '%s' "$2" | npx --yes wrangler@latest secret put "$1" >/dev/null
+              echo "set $1"
+            else
+              echo "skip $1 (empty)"
+            fi
+          }
+          put IG_ACCESS_TOKEN "$IG_ACCESS_TOKEN"
+          put IG_USER_ID "$IG_USER_ID"
+          put NVIDIA_API_KEY "$NVIDIA_API_KEY"
+          put WEBHOOK_VERIFY_TOKEN "$WEBHOOK_VERIFY_TOKEN"
+          put APP_SECRET "$APP_SECRET"

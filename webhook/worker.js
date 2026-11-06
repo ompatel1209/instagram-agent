@@ -431,13 +431,17 @@ export default {
     } catch (e) {
       return new Response("bad json", { status: 400 });
     }
+    // One line per delivery: proves Meta reached us and shows what it sent,
+    // even when the payload yields no actionable event.
+    const events = extractEvents(body);
+    console.log("POST object=" + body.object + " events=" + events.length);
     if (body.object !== "instagram") {
       return new Response("ignored", { status: 200 });
     }
 
     // Always 200 — a handler crash must not make Meta retry forever.
     ctx.waitUntil((async () => {
-      for (const evt of extractEvents(body)) {
+      for (const evt of events) {
         try {
           if (evt.kind === "comment") await handleComment(evt.value, env);
           else if (evt.kind === "message") await handleMessage(evt.value, env);

@@ -114,9 +114,28 @@ def _generic_object_error(err_text: str) -> bool:
     return "does not exist" in low and "missing permissions" in low
 
 
+def _token_dead(err_text: str) -> bool:
+    """Is this Graph error "your access token is gone", not "this one call
+    failed"? A dead token fails EVERY call identically, and because the
+    flows stay non-fatal the run used to exit 0 with "0 replies" — which
+    reads exactly like a quiet hour. Seen live on 2026-11-04/05: five days
+    of green engagement runs, zero API reads, zero replies."""
+    low = str(err_text).lower()
+    return ("error validating access token" in low
+            or "session has been invalidated" in low
+            or "access token has expired" in low
+            or "access token is invalid" in low)
+
+
+# First token-death message seen in this run; run() turns it into a red exit.
+_fatal: list[str] = []
+
+
 def _note(state_obj: dict, today_str: str, message: str) -> None:
     print(f"engagement: {message}")
     state.note_failure(state_obj, today_str, "engagement", message)
+    if _token_dead(message) and not _fatal:
+        _fatal.append(message)
 
 
 # --- Comments -------------------------------------------------------------------
@@ -153,39 +172,38 @@ def reply_to_comments(cfg: dict, st: dict, bank: dict,
     generic_denials = 0
     media_swept = 0
 
-    # Reconcile state-recorded ids against the live account first: a
-    # deleted post 400s on the comments edge with Graph's generic error,
-    # exactly like a scope problem. An id missing from /media is simply
-    # gone — drop it from the sweep (a printed note, not a failure) so it
-    # neither pollutes the log nor fires the all-denied permission flag.
-    ids = _recent_media_ids(st)
-    if not ids:
-        # Nothing recorded to sweep — skip the live-media lookup too:
-        # pruning an empty list is a no-op and media_swept stays 0, so
-        # the all-denied permission flag could never fire anyway.
-        return count, None
-    live_ids: set[str] = set()
+    # Sweep the account's LIVE media, not just the ids state.json recorded:
+    # /media is the account's actual current posts (newest first), so it
+    # also covers posts the state never saw — a publish that failed after
+    # uploading, a post made by hand — whose comments were otherwise never
+    # fetched. A deleted post drops out here too, which is what the old
+    # state-vs-live pruning did for the same reason: an id missing from
+    # /media 400s on the comments edge with Graph's generic error, which
+    # looks exactly like a scope problem.
+    recorded = _recent_media_ids(st)
+    live: list[str] = []
     try:
-        live_ids = {str(m.get("id", "")) for m in
-                    instagram.list_media(token, cfg["ig_user_id"])}
+        live = [str(m.get("id", "")) for m in
+                instagram.list_media(token, cfg["ig_user_id"])]
     except instagram.InstagramError as e:
-        # Non-fatal: without the live list we just sweep everything as
-        # before (deleted posts then show up as per-media failure notes).
-        # The lookup failing IS an error worth recording — it recurs at
-        # most once per run, well inside note_failure's daily cap.
+        # Non-fatal: fall back to the recorded ids. The lookup failing IS
+        # an error worth recording — it recurs at most once per run, well
+        # inside note_failure's daily cap.
         _note(st, today_str,
-              f"live media lookup failed — {e}; sweeping all recorded ids")
+              f"live media lookup failed — {e}; sweeping recorded ids")
     # An empty live list is treated as unknown, not as "everything is
-    # deleted": pruning on it would zero the sweep and silence the
-    # all-denied permission flag. A working account that posts daily
-    # always has live media, so this only fires on a glitch — sweep all.
-    if live_ids:
-        for mid in ids:
-            if mid not in live_ids:
+    # deleted": sweeping nothing would silence the all-denied permission
+    # flag. A working account that posts daily always has live media.
+    if live:
+        for mid in recorded:
+            if mid not in live:
                 print(f"engagement: media {mid} is no longer on the "
                       "account — skipping")
-        ids = [mid for mid in ids if mid in live_ids]
-
+        ids = live[:COMMENT_MEDIA_LIMIT]
+    else:
+        ids = recorded
+    if not ids:
+        return count, None
     for mid in ids:
         media_swept += 1
         try:
@@ -409,6 +427,7 @@ def run() -> None:
     today_str = ist_today().isoformat()
     st = state.load()
     bank = load_bank()
+    _fatal.clear()
 
     n_comments, perm_c = reply_to_comments(cfg, st, bank, today_str)
     n_dms, perm_m = answer_dms(cfg, st, bank, today_str)
@@ -423,6 +442,13 @@ def run() -> None:
     state.save(st)
     print(f"engagement: done — {n_comments} comment(s), {n_dms} DM(s)"
           + (f", MISSING: {', '.join(permissions)}" if permissions else ""))
+
+    # A dead token must fail the run. Exiting 0 here is what turned five
+    # days of "0 replies" into green checkmarks nobody looked at.
+    if _fatal:
+        raise SystemExit(
+            "engagement: ACCESS TOKEN REJECTED — nothing was read or "
+            "replied: " + _fatal[0])
 
     # Reconcile exactly the one permission issue (never the day-incomplete
     # ones — the hourly cadence must not open those before the 9 AM post).

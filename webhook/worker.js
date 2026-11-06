@@ -346,27 +346,44 @@ async function handleMessage(evt, env) {
 
 // --- payload parsing ----------------------------------------------------------
 // Meta's Instagram webhook shape: { object: "instagram", entry: [ { id, time,
-//   changes: [{ field: "comments", value: { id, text, from: {id,username} } }],
+//   changes: [{ field: "comments", value: { comment_id, text, from: {id,username} } }],
 //   messaging: [{ sender: {id}, recipient: {id}, message: { mid, text } }] } ] }
-// changes carries comment events; messaging carries DM events (incoming
-// only — Meta does not deliver the account owner's outgoing DMs here).
-function extractEvents(body) {
+// Instagram Login puts comment events in `changes` and DM events in
+// `messaging`. Two shape traps, both silent:
+//   - the comment object is `comment_id` (some deliveries also carry `id`),
+//     so matching only `value.id` dropped every comment event;
+//   - `messaging` also carries an ECHO of every message the account sends,
+//     flagged is_echo — treating those as inbound replies to ourselves.
+export function extractEvents(body) {
   const out = [];
   for (const entry of body.entry || []) {
     for (const ch of entry.changes || []) {
-      if (ch.field === "comments" && ch.value && ch.value.id) {
-        out.push({ kind: "comment", value: ch.value });
+      const v = ch.value || {};
+      if (ch.field === "comments" && (v.comment_id || v.id)) {
+        // Normalise both shapes to one event with a usable id.
+        out.push({ kind: "comment",
+          value: Object.assign({}, v, { id: v.comment_id || v.id }) });
+      } else if (ch.field === "messages" && v.message &&
+                 v.message.text && !v.message.is_echo) {
+        // Defensive: some Instagram Login deliveries wrap DMs in `changes`.
+        out.push({ kind: "message", value: {
+          id: v.message.mid || "",
+          text: v.message.text,
+          sender: v.sender || {},
+        } });
       }
     }
     for (const m of entry.messaging || []) {
-      const text = m.message && m.message.text;
-      if (text) {
-        out.push({ kind: "message", value: {
-          id: m.message.mid || "",
-          text,
-          sender: m.sender || {},
-        } });
-      }
+      const msg = m.message || {};
+      // is_echo: our own sent message coming back. is_self: the test
+      // message Meta lets you send yourself. Reply to either and the
+      // worker answers itself forever.
+      if (msg.is_echo || msg.is_self || !msg.text) continue;
+      out.push({ kind: "message", value: {
+        id: msg.mid || "",
+        text: msg.text,
+        sender: m.sender || {},
+      } });
     }
   }
   return out;

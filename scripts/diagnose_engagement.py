@@ -14,6 +14,10 @@ uid = os.environ.get("IG_USER_ID", "")
 if not token or not uid:
     sys.exit("missing IG_ACCESS_TOKEN / IG_USER_ID")
 
+me = instagram.token_info(token)
+print(f"account: @{me.get('username')} (id={me.get('user_id')})")
+print(f"IG_USER_ID secret: {uid}\n")
+
 media = instagram.list_media(token, uid, limit=10)
 print(f"media ({len(media)}):")
 for m in media:

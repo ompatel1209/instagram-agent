@@ -141,14 +141,18 @@ def refresh_token(token: str) -> str:
 
 
 def token_info(token: str) -> dict:
-    """GET /me?fields=user_id,expires — token metadata for expiry tracking.
+    """GET /me?fields=user_id,username,expires — token metadata for expiry
+    tracking.
 
     `expires` is a unix timestamp (long-lived tokens only); expires_in is
     not a field on the /me node, so asking for it 400s the whole lookup.
+    `username` is the account the token actually belongs to — the one
+    thing that tells "our comment never arrived" apart from "we are
+    reading a different account".
     """
     r = requests.get(
         f"{GRAPH_HOST}/me",  # unversioned works for token introspection
-        params={"fields": "user_id,expires", "access_token": token},
+        params={"fields": "user_id,username,expires", "access_token": token},
         timeout=TIMEOUT,
     )
     return _check(r)

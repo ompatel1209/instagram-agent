@@ -919,6 +919,56 @@ def alerts_evaluate_includes_engagement_condition():
 
 # ---------------------------------------------------------------- entry point
 @test
+def sweep_covers_live_media_the_state_never_recorded():
+    """A post the agent didn't record (failed publish, manual post) is still
+    on the account, so its comments must still be answered."""
+    st = fresh_state()
+
+    def list_comments(t, m):
+        return ([{"id": "C_NEW", "text": "love this", "username": "fan"}]
+                if m == "M_LIVE_NEW" else [])
+
+    with TmpState() as ts:
+        with patch.object(instagram, "list_media",
+                          lambda t, u, limit=50: [{"id": "M_LIVE_NEW"},
+                                                  {"id": "M_FEED"}]), \
+             patch.object(instagram, "list_comments", list_comments), \
+             patch.object(instagram, "list_comment_replies",
+                          lambda t, c: []), \
+             patch.object(instagram, "reply_to_comment",
+                          lambda t, c, m: "RID"):
+            n, perm = engagement.reply_to_comments(CFG, st, BANK, TODAY)
+        assert n == 1 and perm is None
+        assert "C_NEW" in st["replied_comments"]
+        assert len(ts.saves) == 1
+
+
+@test
+def dead_token_fails_the_run_instead_of_reporting_zero():
+    """An invalidated token fails every call; the run must go red, not
+    report '0 replies' as if the account were simply quiet."""
+    cfg = dict(CFG, gh_pat="")
+
+    def dead(t, u, limit=50):
+        raise instagram.InstagramError(
+            "HTTP 400: Error validating access token: The session has been "
+            "invalidated because the user changed their password")
+
+    with TmpState():
+        state.save(fresh_state())
+        with patch.object(engagement, "load_config", lambda: cfg), \
+             patch.object(instagram, "list_media", dead), \
+             patch.object(instagram, "list_comments", lambda t, m: []), \
+             patch.object(instagram, "list_conversations", lambda t, u: []):
+            try:
+                engagement.run()
+            except SystemExit as e:
+                assert "ACCESS TOKEN REJECTED" in str(e), str(e)
+            else:
+                raise AssertionError("run() exited green on a dead token")
+
+
+@test
 def run_smoke_writes_engagement_record():
     cfg = dict(CFG, gh_pat="")
     st = fresh_state()

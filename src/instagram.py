@@ -126,8 +126,14 @@ def publishing_limit(token: str, ig_user_id: str) -> dict:
     return _check(r)
 
 
-def refresh_token(token: str) -> str:
-    """Refresh a long-lived Instagram User token. Returns the new token."""
+def refresh_token(token: str) -> tuple[str, int | None]:
+    """Refresh a long-lived Instagram User token.
+
+    Returns (new token, expires_in seconds). The expiry rides along because
+    /me has no `expires` field on graph.instagram.com — this response is the
+    only place Meta states when the token dies, and without it the expiry
+    alert never fires.
+    """
     r = requests.get(
         f"{GRAPH_HOST}/refresh_access_token",
         params={"grant_type": "ig_refresh_token", "access_token": token},
@@ -137,22 +143,22 @@ def refresh_token(token: str) -> str:
     new = data.get("access_token")
     if not new:
         raise InstagramError(f"refresh returned no token: {list(data.keys())}")
-    return new
+    expires_in = data.get("expires_in")
+    return new, int(expires_in) if expires_in else None
 
 
 def token_info(token: str) -> dict:
-    """GET /me?fields=user_id,username,expires — token metadata for expiry
-    tracking.
+    """GET /me?fields=user_id,username — who this token belongs to.
 
-    `expires` is a unix timestamp (long-lived tokens only); expires_in is
-    not a field on the /me node, so asking for it 400s the whole lookup.
-    `username` is the account the token actually belongs to — the one
-    thing that tells "our comment never arrived" apart from "we are
-    reading a different account".
+    Only fields that exist on the Instagram Login /me node: asking for
+    `expires` (or `expires_in`) 400s the whole lookup, which is how token
+    expiry tracking silently died. Expiry comes from refresh_token instead.
+    `username` tells "our comment never arrived" apart from "we are reading
+    a different account".
     """
     r = requests.get(
         f"{GRAPH_HOST}/me",  # unversioned works for token introspection
-        params={"fields": "user_id,username,expires", "access_token": token},
+        params={"fields": "user_id,username", "access_token": token},
         timeout=TIMEOUT,
     )
     return _check(r)

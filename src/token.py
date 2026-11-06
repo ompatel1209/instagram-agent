@@ -17,8 +17,9 @@ from . import instagram
 def days_left(token: str) -> tuple[int | None, str]:
     """Best-effort expiry lookup; returns (days, iso) or (None, '').
 
-    /me reports `expires` as a unix timestamp; the floor of the remaining
-    timedelta alarms slightly early, which is the safe direction.
+    /me carries no expiry on graph.instagram.com, so this only helps on days
+    whose refresh produced `expires_in` (see token.refresh_and_store). Kept
+    as the fallback for the "already refreshed today" early-out.
     """
     try:
         info = instagram.token_info(token)
@@ -69,10 +70,10 @@ def refresh_and_store(token: str, gh_pat: str, repo: str) -> dict:
       reason         failure note for state/alerting ("" when healthy)
     """
     out = {"token": token, "refreshed": False, "secret_updated": False,
-           "reason": ""}
+           "reason": "", "days_left": None}
 
     try:
-        new_token = instagram.refresh_token(token)
+        new_token, expires_in = instagram.refresh_token(token)
     except instagram.InstagramError as e:
         # Meta rejected the refresh — usually an expired/invalid token.
         # Publishing will fail downstream; the reason is recorded for alerting.
@@ -84,6 +85,10 @@ def refresh_and_store(token: str, gh_pat: str, repo: str) -> dict:
 
     out["token"] = new_token
     out["refreshed"] = True
+    if expires_in:
+        # Meta states the lifetime only here, so this is the one reliable
+        # expiry signal the agent ever gets.
+        out["days_left"] = max(0, expires_in // 86400)
 
     if not gh_pat:
         out["reason"] = "refreshed but GH_PAT unset — IG_ACCESS_TOKEN secret NOT updated"

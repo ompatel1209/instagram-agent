@@ -65,7 +65,7 @@ _mod.Response = FakeResponse
 sys.modules["requests"] = _mod
 
 # ------------------------------------------------------------ imports under test
-from src import alerts, engagement, instagram, state  # noqa: E402
+from src import alerts, engagement, instagram, state, token  # noqa: E402
 from src.engagement import MAX_COMMENT_REPLIES, MAX_DM_REPLIES  # noqa: E402
 
 BANK = engagement.load_bank()
@@ -966,6 +966,19 @@ def dead_token_fails_the_run_instead_of_reporting_zero():
                 assert "ACCESS TOKEN REJECTED" in str(e), str(e)
             else:
                 raise AssertionError("run() exited green on a dead token")
+
+
+@test
+def refresh_records_the_expiry_meta_states():
+    """graph.instagram.com /me has no expiry field, so the refresh response's
+    expires_in is the only expiry signal the agent gets. Dropping it leaves
+    the "token expires soon" alert permanently silent — which is how a dead
+    token went unnoticed for five days."""
+    with patch.object(instagram, "refresh_token",
+                      lambda t: ("NEW_TOKEN", 60 * 86400)):
+        out = token.refresh_and_store("OLD", "", "")
+    assert out["token"] == "NEW_TOKEN" and out["refreshed"] is True
+    assert out["days_left"] == 60
 
 
 @test

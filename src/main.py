@@ -508,6 +508,7 @@ def _run_publish(cfg: dict, args, date: dt.date, date_str: str) -> int:
             f"{cfg['repo_owner']}/{cfg['repo_name']}",
         )
         cfg["access_token"] = tok_out["token"]
+        cfg["token_days_left"] = tok_out.get("days_left")
         if tok_out["refreshed"] and tok_out["secret_updated"]:
             log("token refreshed and IG_ACCESS_TOKEN secret updated")
             state.mark_token_refreshed(st, date_str)
@@ -745,7 +746,14 @@ def _publish_image_pair_caption(cfg: dict, st: dict, date_str: str,
 def _note_token(cfg: dict, st: dict, date_str: str) -> None:
     """Token expiry bookkeeping (best-effort, never fatal)."""
     try:
-        d_left, iso = token.days_left(cfg["access_token"])
+        # The refresh response is the only place Meta states the lifetime
+        # (/me has no expiry field on graph.instagram.com), so prefer it.
+        d_left = cfg.get("token_days_left")
+        if isinstance(d_left, int):
+            iso = (dt.date.today()
+                   + dt.timedelta(days=d_left)).isoformat()
+        else:
+            d_left, iso = token.days_left(cfg["access_token"])
         if d_left is not None:
             state.note_token_expiry(st, iso, d_left)
             log(f"token expires in {d_left}d ({iso})")

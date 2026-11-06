@@ -1798,7 +1798,14 @@
         "softaesthetic",
         "stylediaries"
       ],
-      "trending_source": "ai"
+      "trending_source": "ai",
+      "token_refreshed": true,
+      "published_media": {
+        "feed": "18077645597740428",
+        "story": "18649970575025830"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [

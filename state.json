@@ -1789,6 +1789,16 @@
       "token_refresh": {
         "reason": "refresh rejected: HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
       }
+    },
+    "2026-11-06": {
+      "trending_now": [
+        "dailyupdate",
+        "lifestyle",
+        "memories",
+        "softaesthetic",
+        "stylediaries"
+      ],
+      "trending_source": "ai"
     }
   },
   "posted_files": [
@@ -1837,23 +1847,27 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-11-05",
+    "date": "2026-11-06",
     "trending_now": [
-      "sassygirl",
-      "babyme",
-      "indianfashion",
-      "indiatravel",
-      "growwithreels"
+      "dailyupdate",
+      "lifestyle",
+      "memories",
+      "softaesthetic",
+      "stylediaries"
     ],
+    "trending_source": "ai",
     "queue_remaining": 0,
     "next_file": null,
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "flowers-nature-b",
-      "mood": "flowers"
+      "id": "henna-ambience",
+      "mood": "henna"
     },
     "token_days_left": null,
     "festival": null
+  },
+  "ai_tokens_spent": {
+    "2026-11-06": 239
   }
 }

@@ -1,0 +1,46 @@
+name: Tail instant-reply worker
+
+# Live log capture for the Cloudflare Worker. Workers Free keeps no log
+# history, so this streams `wrangler tail` for a few minutes and leaves the
+# events in the Actions log — the only way to see whether Meta is actually
+# delivering a comment/DM event and what the worker did with it.
+#
+# Usage: Actions -> "Tail instant-reply worker" -> Run workflow, then send a
+# DM/comment from another account while it runs.
+
+on:
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: "How long to capture (max 600)"
+        required: false
+        default: "300"
+
+concurrency:
+  group: instagram-webhook-tail
+  cancel-in-progress: true
+
+jobs:
+  tail:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Stream worker logs
+        working-directory: webhook
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SECONDS_TO_TAIL: ${{ inputs.seconds }}
+        run: |
+          set -euo pipefail
+          secs="${SECONDS_TO_TAIL:-300}"
+          if [ "$secs" -gt 600 ]; then secs=600; fi
+          echo "tailing for ${secs}s — send a DM/comment now"
+          timeout "$secs" npx --yes wrangler@latest tail --format pretty || true
+          echo "tail finished"

@@ -1832,7 +1832,14 @@
         "travelphotography",
         "betterself"
       ],
-      "trending_source": "ai"
+      "trending_source": "ai",
+      "token_refreshed": true,
+      "published_media": {
+        "feed": "18132138397695429",
+        "story": "17918413356538304"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -1911,7 +1918,7 @@
     "2026-11-08": 253
   },
   "token": {
-    "expires": "2027-01-06",
+    "expires": "2027-01-07",
     "days_left": 60
   }
 }

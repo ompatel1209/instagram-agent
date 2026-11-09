@@ -1857,6 +1857,15 @@
       },
       "publish_feed": true,
       "publish_story": true
+    },
+    "2026-11-10": {
+      "token_refreshed": true,
+      "published_media": {
+        "feed": "18121650226765009",
+        "story": "18119778598795202"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -1932,7 +1941,7 @@
     "2026-11-09": 260
   },
   "token": {
-    "expires": "2027-01-08",
-    "days_left": 60
+    "expires": "2027-01-07",
+    "days_left": 59
   }
 }

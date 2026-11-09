@@ -1849,7 +1849,14 @@
         "selfgrowth",
         "girldaily"
       ],
-      "trending_source": "ai"
+      "trending_source": "ai",
+      "token_refreshed": true,
+      "published_media": {
+        "feed": "18099217535453474",
+        "story": "17906738220601766"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -1925,7 +1932,7 @@
     "2026-11-09": 260
   },
   "token": {
-    "expires": "2027-01-07",
+    "expires": "2027-01-08",
     "days_left": 60
   }
 }

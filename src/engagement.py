@@ -27,7 +27,7 @@ import json
 import random
 
 from . import ai, alerts, instagram, state
-from .config import CONTENT_DIR, load_config, ist_today
+from .config import CONTENT_DIR, load_config, ist_today, redact
 
 # Bounds so an hourly run can never spam: at most this many replies per run.
 MAX_COMMENT_REPLIES = 10
@@ -132,7 +132,7 @@ _fatal: list[str] = []
 
 
 def _note(state_obj: dict, today_str: str, message: str) -> None:
-    print(f"engagement: {message}")
+    print(f"engagement: {redact(message)}")
     state.note_failure(state_obj, today_str, "engagement", message)
     if _token_dead(message) and not _fatal:
         _fatal.append(message)

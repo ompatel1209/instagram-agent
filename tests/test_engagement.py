@@ -62,6 +62,13 @@ _mod.get = _fake.get
 _mod.post = _fake.post
 _mod.request = _fake.request
 _mod.Response = FakeResponse
+
+
+class FakeRequestError(Exception):
+    pass
+
+
+_mod.RequestException = FakeRequestError
 sys.modules["requests"] = _mod
 
 # ------------------------------------------------------------ imports under test
@@ -998,6 +1005,28 @@ def run_smoke_writes_engagement_record():
         assert loaded["engagement"]["permissions_missing"] == []
         assert "0 comment replies, 0 DM replies" == \
             loaded["engagement"]["last_run"]
+
+
+@test
+def http_errors_never_carry_the_access_token():
+    """A network error embeds the token-bearing URL; neither the transport
+    nor the state ledger may ever surface it (state.json is public)."""
+    secret = "IGSECRET123"
+    _fake.responses = [FakeRequestError(
+        "Max retries exceeded with url: /v23.0/M1/comments?fields=id"
+        "&access_token=" + secret + " (Caused by connection reset)")]
+    try:
+        instagram.list_comments("TOK", "M1")
+    except instagram.InstagramError as e:
+        assert secret not in str(e), str(e)
+    else:
+        raise AssertionError("expected InstagramError")
+    _fake.responses = []
+    st = {"days": {}}
+    state.note_failure(st, "2026-09-04", "engagement",
+                       "boom access_token=" + secret + "&fields=x")
+    assert secret not in json.dumps(st)
+    assert "[redacted]" in json.dumps(st)
 
 
 # ---------------------------------------------------------------------- runner

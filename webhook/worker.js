@@ -11,7 +11,7 @@
  * Every secret lives in Worker env vars (wrangler secret put / dashboard)
  * — NEVER in this file, which sits in a PUBLIC repo:
  *   IG_USER_ID, IG_ACCESS_TOKEN, NVIDIA_API_KEY, WEBHOOK_VERIFY_TOKEN,
- *   APP_SECRET (optional, enables X-Hub-Signature-256 checking),
+ *   APP_SECRET (required — unsigned POSTs are rejected),
  *   IG_HANDLE + NO_REPLY_USERS (optional, default @whoisaaniiiya),
  *   REPLY_BANK_URL (optional override of the bank location).
  *
@@ -389,7 +389,7 @@ export function extractEvents(body) {
   return out;
 }
 
-// --- webhook signature check (optional, when APP_SECRET is set) ----------------
+// --- webhook signature check (APP_SECRET is required) ----------------
 
 async function hmacMatches(secret, payload, header) {
   const enc = new TextEncoder();
@@ -420,10 +420,10 @@ export default {
         return new Response("not found", { status: 404 });
       }
       const mode = url.searchParams.get("hub.mode");
-      const token = url.searchParams.get("hub.verify_token");
+      const token = url.searchParams.get("hub.verify_token") || "";
       const challenge = url.searchParams.get("hub.challenge");
       if (mode === "subscribe" && challenge !== null &&
-          token === env.WEBHOOK_VERIFY_TOKEN) {
+          env.WEBHOOK_VERIFY_TOKEN && safeEq(token, env.WEBHOOK_VERIFY_TOKEN)) {
         return new Response(challenge, { status: 200 });
       }
       return new Response("forbidden", { status: 403 });
@@ -437,8 +437,14 @@ export default {
         { status: request.method === "POST" ? 404 : 405 });
     }
 
+    // Signatures are mandatory: without one, anyone who learns this URL
+    // could inject fake comment/DM events and make the account reply.
+    if (!env.APP_SECRET) {
+      console.log("POST rejected: APP_SECRET is not configured");
+      return new Response("webhook not configured", { status: 503 });
+    }
     const raw = await request.text();
-    if (env.APP_SECRET && !await hmacMatches(
+    if (!await hmacMatches(
         env.APP_SECRET, raw, request.headers.get("X-Hub-Signature-256"))) {
       return new Response("forbidden", { status: 403 });
     }

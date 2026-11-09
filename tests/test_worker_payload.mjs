@@ -9,6 +9,8 @@
  *
  * Run:  node tests/test_worker_payload.mjs     (exit 0 = pass)
  */
+import { createHmac } from "node:crypto";
+import worker from "../webhook/worker.js";
 import { extractEvents } from "../webhook/worker.js";
 
 const bank = [
@@ -78,5 +80,30 @@ for (const { name, body, want } of bank) {
   console.log((ok ? "PASS  " : "FAIL  ") + name +
     (ok ? "" : `\n  want ${JSON.stringify(want)}\n  got  ${JSON.stringify(got)}`));
 }
-console.log(`\n${bank.length - failed}/${bank.length} passed`);
+
+// Signature gate: no APP_SECRET -> 503 (fail closed), unsigned/bad POST ->
+// 403, correctly signed POST -> accepted. Without this, anyone who learns
+// the worker URL could inject fake comment/DM events.
+try {
+  const ctx = { waitUntil() {} };
+  let r = await worker.fetch(
+    new Request("https://w/webhook", { method: "POST", body: "{}" }), {}, ctx);
+  if (r.status !== 503) throw new Error(`no-secret POST ${r.status} (want 503)`);
+  r = await worker.fetch(
+    new Request("https://w/webhook", { method: "POST", body: "{}" }),
+    { APP_SECRET: "S" }, ctx);
+  if (r.status !== 403) throw new Error(`unsigned POST ${r.status} (want 403)`);
+  r = await worker.fetch(
+    new Request("https://w/webhook", { method: "POST", body: "{}",
+      headers: { "X-Hub-Signature-256": "sha256=" +
+        createHmac("sha256", "S").update("{}").digest("hex") } }),
+    { APP_SECRET: "S" }, ctx);
+  if (r.status !== 200) throw new Error(`signed POST ${r.status} (want 200)`);
+  console.log("PASS  signature gate");
+} catch (e) {
+  failed++;
+  console.log("FAIL  signature gate: " + e.message);
+}
+
+console.log(`\n${bank.length + 1 - failed}/${bank.length + 1} passed`);
 process.exit(failed ? 1 : 0);

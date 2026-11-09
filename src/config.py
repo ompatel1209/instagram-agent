@@ -3,6 +3,7 @@ import datetime as dt
 import json
 import os
 import pathlib
+import re
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "config.json"
@@ -12,6 +13,15 @@ FONTS_DIR = ROOT / "assets" / "fonts"
 PREVIEW_DIR = ROOT / "preview"
 
 IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
+
+# Tokens ride in Graph GET query strings; a requests exception embeds that
+# URL, and state.json is committed to a public repo. Scrub before storing.
+_TOKEN_PARAM = re.compile(r"(access_token=)[^&\s'\"]+", re.IGNORECASE)
+
+
+def redact(text: object) -> str:
+    """Strip access tokens from error text bound for state.json or a log."""
+    return _TOKEN_PARAM.sub(r"\1[redacted]", str(text))
 
 
 def ist_today() -> dt.date:

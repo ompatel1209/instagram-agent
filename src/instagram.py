@@ -13,6 +13,8 @@ import time
 
 import requests
 
+from .config import redact
+
 GRAPH_HOST = "https://graph.instagram.com"
 API_VERSION = "v23.0"
 BASE = f"{GRAPH_HOST}/{API_VERSION}"
@@ -23,21 +25,44 @@ class InstagramError(Exception):
     pass
 
 
+def _get(url: str, **kw):
+    """requests.get that never lets the token-bearing URL reach a log.
+
+    urllib3's ConnectionError message includes the full request path —
+    including `access_token=` — and state.json is public.
+    """
+    try:
+        return requests.get(url, **kw)
+    except requests.RequestException as e:
+        raise InstagramError(
+            f"request failed: {type(e).__name__}: {redact(e)}"
+        ) from None
+
+
+def _post(url: str, **kw):
+    try:
+        return requests.post(url, **kw)
+    except requests.RequestException as e:
+        raise InstagramError(
+            f"request failed: {type(e).__name__}: {redact(e)}"
+        ) from None
+
+
 def _check(resp: requests.Response) -> dict:
     if resp.status_code >= 400:
         try:
             err = resp.json().get("error", {})
         except ValueError:
             err = {}
-        raise InstagramError(
+        raise InstagramError(redact(
             f"HTTP {resp.status_code}: {err.get('message', resp.text[:300])}"
-        )
+        ))
     return resp.json()
 
 
 def get_user_id(token: str) -> str:
     """Resolve the IG professional account id from /me."""
-    r = requests.get(
+    r = _get(
         f"{BASE}/me",
         params={"fields": "user_id", "access_token": token},
         timeout=TIMEOUT,
@@ -67,7 +92,7 @@ def create_container(token: str, ig_user_id: str, image_url: str | None = None,
         params["media_type"] = media_type
     if caption:
         params["caption"] = caption
-    r = requests.post(f"{BASE}/{ig_user_id}/media", data=params, timeout=TIMEOUT)
+    r = _post(f"{BASE}/{ig_user_id}/media", data=params, timeout=TIMEOUT)
     data = _check(r)
     cid = data.get("id")
     if not cid:
@@ -85,7 +110,7 @@ def wait_finished(token: str, container_id: str,
     deadline = time.time() + max_wait_s
     last = ""
     while time.time() < deadline:
-        r = requests.get(
+        r = _get(
             f"{BASE}/{container_id}",
             params={"fields": "status_code", "access_token": token},
             timeout=TIMEOUT,
@@ -104,7 +129,7 @@ def wait_finished(token: str, container_id: str,
 
 def publish(token: str, ig_user_id: str, container_id: str) -> str:
     """Step 3: publish a finished container."""
-    r = requests.post(
+    r = _post(
         f"{BASE}/{ig_user_id}/media_publish",
         data={"creation_id": container_id, "access_token": token},
         timeout=TIMEOUT,
@@ -118,7 +143,7 @@ def publish(token: str, ig_user_id: str, container_id: str) -> str:
 
 def publishing_limit(token: str, ig_user_id: str) -> dict:
     """GET content_publishing_limit — quota info for the 24h window."""
-    r = requests.get(
+    r = _get(
         f"{BASE}/{ig_user_id}/content_publishing_limit",
         params={"access_token": token},
         timeout=TIMEOUT,
@@ -134,7 +159,7 @@ def refresh_token(token: str) -> tuple[str, int | None]:
     only place Meta states when the token dies, and without it the expiry
     alert never fires.
     """
-    r = requests.get(
+    r = _get(
         f"{GRAPH_HOST}/refresh_access_token",
         params={"grant_type": "ig_refresh_token", "access_token": token},
         timeout=TIMEOUT,
@@ -156,7 +181,7 @@ def token_info(token: str) -> dict:
     `username` tells "our comment never arrived" apart from "we are reading
     a different account".
     """
-    r = requests.get(
+    r = _get(
         f"{GRAPH_HOST}/me",  # unversioned works for token introspection
         params={"fields": "user_id,username", "access_token": token},
         timeout=TIMEOUT,
@@ -176,7 +201,7 @@ def list_media(token: str, ig_user_id: str, limit: int = 50) -> list[dict]:
     missing here is gone from the account no matter what its comments call
     returns.
     """
-    r = requests.get(
+    r = _get(
         f"{BASE}/{ig_user_id}/media",
         params={"fields": "id", "limit": limit, "access_token": token},
         timeout=TIMEOUT,
@@ -189,7 +214,7 @@ def list_comments(token: str, media_id: str, limit: int = 30) -> list[dict]:
 
     Each item: {"id", "text", "username" (from username field), "timestamp"}.
     """
-    r = requests.get(
+    r = _get(
         f"{BASE}/{media_id}/comments",
         params={
             "fields": "id,text,username,timestamp",
@@ -203,7 +228,7 @@ def list_comments(token: str, media_id: str, limit: int = 30) -> list[dict]:
 
 def reply_to_comment(token: str, comment_id: str, message: str) -> str:
     """Reply to a comment: POST /{comment-id}/replies. Returns the reply id."""
-    r = requests.post(
+    r = _post(
         f"{BASE}/{comment_id}/replies",
         data={"message": message, "access_token": token},
         timeout=TIMEOUT,
@@ -225,7 +250,7 @@ def list_comment_replies(token: str, comment_id: str,
     answered by either side (or manually from the phone) is never replied
     twice, no matter what either state store says.
     """
-    r = requests.get(
+    r = _get(
         f"{BASE}/{comment_id}/replies",
         params={
             "fields": "id,text,username",
@@ -244,7 +269,7 @@ def list_conversations(token: str, ig_user_id: str) -> list[dict]:
     [{"id","text"(from message field),"created_time"}]}} — the messages
     edge is included so unanswered threads can be detected in one call.
     """
-    r = requests.get(
+    r = _get(
         f"{BASE}/{ig_user_id}/conversations",
         params={
             "platform": "instagram",
@@ -266,7 +291,7 @@ def send_message(token: str, ig_user_id: str, igsid: str, text: str) -> str:
     this nested shape: {"recipient": {"id": ...}, "message": {"text": ...}}.
     The access token rides in the JSON body — never in the URL.
     """
-    r = requests.post(
+    r = _post(
         f"{BASE}/{ig_user_id}/messages",
         json={
             "recipient": {"id": igsid},

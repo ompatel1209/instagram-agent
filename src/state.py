@@ -6,7 +6,7 @@ never double-posts.
 """
 import json
 
-from .config import STATE_PATH
+from .config import STATE_PATH, redact
 
 
 def load() -> dict:
@@ -49,7 +49,8 @@ def note_failure(state: dict, date_str: str, where: str, message: str) -> None:
     shows only the last 5 anyway, so unbounded growth just bloats state.json)."""
     d = day(state, date_str)
     history = d.setdefault("failures", [])
-    history.append({"where": where, "message": str(message)[:500]})
+    # state.json is public: never persist a token that an HTTP error echoed.
+    history.append({"where": where, "message": redact(message)[:500]})
     if len(history) > 20:
         del history[:-20]
 

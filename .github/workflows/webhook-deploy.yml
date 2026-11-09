@@ -10,8 +10,8 @@ name: Deploy instant-reply worker
 #   CLOUDFLARE_ACCOUNT_ID  dashboard -> Workers & Pages -> right sidebar
 #   WEBHOOK_VERIFY_TOKEN   invent a long random string; paste the SAME value
 #                          into Meta's webhook form
-# Optional:
-#   APP_SECRET             enables X-Hub-Signature-256 checking
+#   APP_SECRET             Meta app's App Secret — REQUIRED: the worker
+#                          rejects unsigned POST events without it
 
 on:
   workflow_dispatch:
@@ -36,11 +36,13 @@ jobs:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           VERIFY: ${{ secrets.WEBHOOK_VERIFY_TOKEN }}
+          APP: ${{ secrets.APP_SECRET }}
         run: |
           missing=""
           [ -z "$CF_TOKEN" ] && missing="$missing CLOUDFLARE_API_TOKEN"
           [ -z "$CF_ACCOUNT" ] && missing="$missing CLOUDFLARE_ACCOUNT_ID"
           [ -z "$VERIFY" ] && missing="$missing WEBHOOK_VERIFY_TOKEN"
+          [ -z "$APP" ] && missing="$missing APP_SECRET"
           if [ -n "$missing" ]; then
             echo "::error::missing repo secret(s):$missing"
             exit 1

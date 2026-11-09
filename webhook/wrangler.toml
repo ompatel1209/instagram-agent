@@ -3,7 +3,7 @@
 # Secrets are NOT set here (public repo!). After `wrangler deploy`, set each
 # one with `wrangler secret put <NAME>` — see webhook/README.md:
 #   IG_USER_ID, IG_ACCESS_TOKEN, NVIDIA_API_KEY, WEBHOOK_VERIFY_TOKEN,
-#   APP_SECRET (optional — enables X-Hub-Signature-256 checking)
+#   APP_SECRET (required — the worker rejects unsigned POST events)
 # Plain config (safe as defaults, override with secrets if you like):
 #   IG_HANDLE, NO_REPLY_USERS, REPLY_BANK_URL
 name = "instagram-agent-webhook"

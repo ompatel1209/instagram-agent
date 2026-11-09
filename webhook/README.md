@@ -45,11 +45,11 @@ Then set the secrets (each prompts for the value; never put them in files —
 this repo is public):
 
 ```bash
-wrangler secret put IG_USER_ID           # 17841460324330889
+wrangler secret put IG_USER_ID           # your IG professional-account user id (Graph API /me)
 wrangler secret put IG_ACCESS_TOKEN      # the same long-lived token GitHub Actions uses
 wrangler secret put NVIDIA_API_KEY       # the NIM key (same one Actions uses)
 wrangler secret put WEBHOOK_VERIFY_TOKEN # any long random string you invent — reuse it in the Meta dashboard
-wrangler secret put APP_SECRET           # OPTIONAL: Meta app's App Secret — enables request-signature verification
+wrangler secret put APP_SECRET           # Meta app's App Secret — REQUIRED; the worker rejects unsigned POSTs without it
 ```
 
 Optional plain config (defaults are baked into `worker.js`):

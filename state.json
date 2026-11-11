@@ -1883,7 +1883,14 @@
         "freshface",
         "fierce"
       ],
-      "trending_source": "ai"
+      "trending_source": "ai",
+      "token_refreshed": true,
+      "published_media": {
+        "feed": "18118045178160054",
+        "story": "18113066480180586"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -1961,7 +1968,7 @@
     "2026-11-11": 254
   },
   "token": {
-    "expires": "2027-01-07",
-    "days_left": 59
+    "expires": "2027-01-10",
+    "days_left": 60
   }
 }

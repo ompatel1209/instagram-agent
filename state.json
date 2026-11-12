@@ -1900,7 +1900,14 @@
         "thatgirl",
         "cutecore"
       ],
-      "trending_source": "ai"
+      "trending_source": "ai",
+      "token_refreshed": true,
+      "published_media": {
+        "feed": "18496110724104480",
+        "story": "17916670710281482"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -1979,7 +1986,7 @@
     "2026-11-12": 270
   },
   "token": {
-    "expires": "2027-01-10",
+    "expires": "2027-01-11",
     "days_left": 60
   }
 }

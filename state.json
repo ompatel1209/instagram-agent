@@ -1891,6 +1891,16 @@
       },
       "publish_feed": true,
       "publish_story": true
+    },
+    "2026-11-12": {
+      "trending_now": [
+        "morningroutine",
+        "selfcare",
+        "dailyvibes",
+        "thatgirl",
+        "cutecore"
+      ],
+      "trending_source": "ai"
     }
   },
   "posted_files": [
@@ -1939,13 +1949,13 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-11-11",
+    "date": "2026-11-12",
     "trending_now": [
-      "momentcollector",
-      "lifestylevibes",
-      "dailyinspo",
-      "freshface",
-      "fierce"
+      "morningroutine",
+      "selfcare",
+      "dailyvibes",
+      "thatgirl",
+      "cutecore"
     ],
     "trending_source": "ai",
     "queue_remaining": 0,
@@ -1953,10 +1963,10 @@
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "rain-window-b",
-      "mood": "rain"
+      "id": "sunset-nature",
+      "mood": "sunset"
     },
-    "token_days_left": 59,
+    "token_days_left": 60,
     "festival": null
   },
   "ai_tokens_spent": {
@@ -1965,7 +1975,8 @@
     "2026-11-08": 253,
     "2026-11-09": 260,
     "2026-11-10": 258,
-    "2026-11-11": 254
+    "2026-11-11": 254,
+    "2026-11-12": 270
   },
   "token": {
     "expires": "2027-01-10",

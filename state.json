@@ -1917,7 +1917,14 @@
         "softaesthetic",
         "sareelove"
       ],
-      "trending_source": "ai"
+      "trending_source": "ai",
+      "token_refreshed": true,
+      "published_media": {
+        "feed": "18002618691002160",
+        "story": "18125357689935742"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -1997,6 +2004,6 @@
   },
   "token": {
     "expires": "2027-01-11",
-    "days_left": 60
+    "days_left": 59
   }
 }

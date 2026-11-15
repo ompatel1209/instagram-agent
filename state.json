@@ -1951,7 +1951,14 @@
         "sunsetlovers",
         "betterself"
       ],
-      "trending_source": "ai"
+      "trending_source": "ai",
+      "token_refreshed": true,
+      "published_media": {
+        "feed": "18131110826512668",
+        "story": "18201487690381749"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -2030,7 +2037,7 @@
     "2026-11-15": 251
   },
   "token": {
-    "expires": "2027-01-13",
+    "expires": "2027-01-14",
     "days_left": 60
   }
 }

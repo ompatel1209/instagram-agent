@@ -1968,7 +1968,14 @@
         "peacefulmind",
         "girldaily"
       ],
-      "trending_source": "ai"
+      "trending_source": "ai",
+      "token_refreshed": true,
+      "published_media": {
+        "feed": "18487316491118396",
+        "story": "18409869934202557"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -2047,7 +2054,7 @@
     "2026-11-16": 255
   },
   "token": {
-    "expires": "2027-01-14",
+    "expires": "2027-01-15",
     "days_left": 60
   }
 }

@@ -1976,6 +1976,15 @@
       },
       "publish_feed": true,
       "publish_story": true
+    },
+    "2026-11-17": {
+      "token_refreshed": true,
+      "published_media": {
+        "feed": "17913489834581878",
+        "story": "18157934902523303"
+      },
+      "publish_feed": true,
+      "publish_story": true
     }
   },
   "posted_files": [
@@ -2054,7 +2063,7 @@
     "2026-11-16": 255
   },
   "token": {
-    "expires": "2027-01-15",
-    "days_left": 60
+    "expires": "2027-01-14",
+    "days_left": 59
   }
 }

@@ -9,6 +9,7 @@ Comment/DM text and usernames are masked by default; set
 DIAGNOSE_SHOW_TEXT=1 (env or workflow env) to print them, and only when the
 log will not be shared.
 """
+import json
 import os
 import sys
 
@@ -46,7 +47,8 @@ for m in media:
 
 # Insights metric probe: find which metric names this token/host actually
 # accepts, per media product type (feed image vs reel), so src/insights.py
-# can request the right set.
+# can request the right set. Also probes the exact ids state.json records
+# as published, to tell "old post, insights gone" from "wrong metrics".
 print("\ninsights metric probe (per media type):")
 try:
     typed = instagram._get(
@@ -70,6 +72,36 @@ for m in media:
             print(f"  OK   {mtype} [{metric_set}] -> {out}")
         except Exception as e:
             print(f"  FAIL {mtype} [{metric_set}] -> {e}")
+
+# Per-id probe over the exact ids the agent published (from state.json).
+print("\ninsights probe over state-recorded ids:")
+try:
+    st = json.load(open("state.json", encoding="utf-8"))
+except Exception as e:
+    st = {}
+    print(f"  state.json unreadable: {e}")
+for dstr in sorted(st.get("days", {}), reverse=True)[:7]:
+    pm = st["days"][dstr].get("published_media")
+    if not isinstance(pm, dict):
+        continue
+    for kind in ("feed", "reel"):
+        mid = pm.get(kind)
+        if not mid:
+            continue
+        try:
+            meta = instagram._get(
+                f"{instagram.BASE}/{mid}",
+                params={"fields": "media_type,media_product_type",
+                        "access_token": token}, timeout=30).json()
+        except Exception as e:
+            print(f"  {dstr} {kind} {mid} meta FAIL: {e}")
+            continue
+        try:
+            out = instagram.media_insights(token, str(mid),
+                                           "reach,likes,comments,saved")
+            print(f"  {dstr} {kind} {mid} {meta} OK -> {out}")
+        except Exception as e:
+            print(f"  {dstr} {kind} {mid} {meta} FAIL -> {e}")
 
 print("\ncomments:")
 for m in media:

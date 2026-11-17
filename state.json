@@ -1984,7 +1984,15 @@
         "story": "18157934902523303"
       },
       "publish_feed": true,
-      "publish_story": true
+      "publish_story": true,
+      "trending_now": [
+        "lowkey",
+        "joyful",
+        "manifesting",
+        "dailycontent",
+        "mirrorselfie"
+      ],
+      "trending_source": "ai"
     }
   },
   "posted_files": [
@@ -2033,13 +2041,13 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-11-16",
+    "date": "2026-11-17",
     "trending_now": [
-      "romanticizing",
-      "dailylife",
-      "aesthetic",
-      "peacefulmind",
-      "girldaily"
+      "lowkey",
+      "joyful",
+      "manifesting",
+      "dailycontent",
+      "mirrorselfie"
     ],
     "trending_source": "ai",
     "queue_remaining": 0,
@@ -2047,20 +2055,20 @@
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "candle-flame-b",
+      "id": "candle-flame-c",
       "mood": "candle"
     },
-    "token_days_left": 60,
+    "token_days_left": 59,
     "festival": null
   },
   "ai_tokens_spent": {
-    "2026-11-10": 258,
     "2026-11-11": 254,
     "2026-11-12": 270,
     "2026-11-13": 252,
     "2026-11-14": 273,
     "2026-11-15": 251,
-    "2026-11-16": 255
+    "2026-11-16": 255,
+    "2026-11-17": 260
   },
   "token": {
     "expires": "2027-01-14",

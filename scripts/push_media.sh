@@ -25,7 +25,16 @@ git add -f "${DATE}-feed.jpg" "${DATE}-story.jpg"
 # Branch may already exist on the remote — stack today's files on top so
 # previous days' media URLs keep resolving.
 if git ls-remote "https://x-access-token:${TOKEN}@github.com/${REPO}.git" --heads "$BRANCH" | grep -q "$BRANCH"; then
-  git pull "https://x-access-token:${TOKEN}@github.com/${REPO}.git" "$BRANCH" --allow-unrelated-histories -q || true
+  # A failed pull here used to be swallowed (|| true) and then force-pushed —
+  # which WIPED the whole media branch (all previous media + the music
+  # library) down to just today's two JPGs. That destroyed every old
+  # media URL and silently killed the reel music feature. A failed pull
+  # must abort instead: the safety re-run retries the whole push later.
+  if ! git pull "https://x-access-token:${TOKEN}@github.com/${REPO}.git" "$BRANCH" --allow-unrelated-histories -q; then
+    echo "ERROR: could not pull the existing $BRANCH branch — refusing to" >&2
+    echo "force-push over it (that would erase all previous media)." >&2
+    exit 1
+  fi
   git add -f "${DATE}-feed.jpg" "${DATE}-story.jpg"
 fi
 

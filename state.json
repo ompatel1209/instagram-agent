@@ -2003,14 +2003,6 @@
       "failures": [
         {
           "where": "insights",
-          "message": "insights for 18118045178160054 failed — HTTP 400: Unsupported get request. Object with ID '18118045178160054' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
-        },
-        {
-          "where": "insights",
-          "message": "insights for 18487316491118396 failed — HTTP 400: Unsupported get request. Object with ID '18487316491118396' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
-        },
-        {
-          "where": "insights",
           "message": "insights for 18131110826512668 failed — HTTP 400: Unsupported get request. Object with ID '18131110826512668' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
         },
         {
@@ -2080,6 +2072,14 @@
         {
           "where": "insights",
           "message": "insights for 18112057082174438 failed — HTTP 400: Unsupported get request. Object with ID '18112057082174438' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18112057082174438 failed — HTTP 400: Unsupported get request. Object with ID '18112057082174438' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18429398455150927 failed — HTTP 400: Unsupported get request. Object with ID '18429398455150927' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
         }
       ]
     }
@@ -2218,6 +2218,46 @@
             "saved": 0
           }
         }
+      },
+      "2026-10-05": {
+        "media": {
+          "17905529643663860": {
+            "reach": 18,
+            "likes": 3,
+            "comments": 0,
+            "saved": 0
+          }
+        }
+      },
+      "2026-10-04": {
+        "media": {
+          "18093345896673985": {
+            "reach": 15,
+            "likes": 3,
+            "comments": 0,
+            "saved": 0
+          }
+        }
+      },
+      "2026-10-03": {
+        "media": {
+          "18125156869863089": {
+            "reach": 19,
+            "likes": 3,
+            "comments": 0,
+            "saved": 0
+          }
+        }
+      },
+      "2026-10-02": {
+        "media": {
+          "18135954064653205": {
+            "reach": 12,
+            "likes": 1,
+            "comments": 0,
+            "saved": 0
+          }
+        }
       }
     },
     "unmeasurable": {
@@ -2233,7 +2273,8 @@
       "18089800277302833": 2,
       "18077645597740428": 2,
       "18106296518313320": 2,
-      "18112057082174438": 1
+      "18112057082174438": 2,
+      "18429398455150927": 1
     }
   }
 }

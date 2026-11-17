@@ -80,6 +80,19 @@ try:
 except Exception as e:
     st = {}
     print(f"  state.json unreadable: {e}")
+# Edge lookup: /{uid}/media with like_count/comments_count — the readable
+# path the engagement sweep already uses.
+edge = {}
+try:
+    listing = instagram._get(
+        f"{instagram.BASE}/{uid}/media",
+        params={"fields": "id,media_type,like_count,comments_count",
+                "limit": 50, "access_token": token}, timeout=30).json()
+    edge = {str(m["id"]): m for m in listing.get("data", [])
+            if isinstance(m, dict) and "id" in m}
+    print(f"  edge listed {len(edge)} media objects")
+except Exception as e:
+    print(f"  edge lookup failed: {e}")
 for dstr in sorted(st.get("days", {}), reverse=True)[:7]:
     pm = st["days"][dstr].get("published_media")
     if not isinstance(pm, dict):
@@ -88,20 +101,18 @@ for dstr in sorted(st.get("days", {}), reverse=True)[:7]:
         mid = pm.get(kind)
         if not mid:
             continue
-        try:
-            meta = instagram._get(
-                f"{instagram.BASE}/{mid}",
-                params={"fields": "media_type,media_product_type",
-                        "access_token": token}, timeout=30).json()
-        except Exception as e:
-            print(f"  {dstr} {kind} {mid} meta FAIL: {e}")
-            continue
+        in_edge = str(mid) in edge
         try:
             out = instagram.media_insights(token, str(mid),
                                            "reach,likes,comments,saved")
-            print(f"  {dstr} {kind} {mid} {meta} OK -> {out}")
+            print(f"  {dstr} {kind} {mid} insights OK -> {out} "
+                  f"(in edge list: {in_edge})")
         except Exception as e:
-            print(f"  {dstr} {kind} {mid} {meta} FAIL -> {e}")
+            counts = edge.get(str(mid), {})
+            print(f"  {dstr} {kind} {mid} insights FAIL ({str(e)[:60]}) "
+                  f"in_edge={in_edge} "
+                  f"edge_counts=like:{counts.get('like_count')} "
+                  f"comments:{counts.get('comments_count')}")
 
 print("\ncomments:")
 for m in media:

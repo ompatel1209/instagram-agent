@@ -1707,22 +1707,6 @@
       "failures": [
         {
           "where": "engagement",
-          "message": "live media lookup failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons.; sweeping all recorded ids"
-        },
-        {
-          "where": "engagement",
-          "message": "list comments on 18106296518313320 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
-        },
-        {
-          "where": "engagement",
-          "message": "list comments on 17911836801311095 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
-        },
-        {
-          "where": "engagement",
-          "message": "list comments on 18111246677336728 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
-        },
-        {
-          "where": "engagement",
           "message": "list comments on 17894653578613603 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
         },
         {
@@ -1784,11 +1768,46 @@
         {
           "where": "engagement",
           "message": "list conversations failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "reel",
+          "message": "library track download failed — published silent"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18112057082174438 failed — HTTP 400: Unsupported get request. Object with ID '18112057082174438' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18429398455150927 failed — HTTP 400: Unsupported get request. Object with ID '18429398455150927' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18103163945341723 failed — HTTP 400: Unsupported get request. Object with ID '18103163945341723' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
         }
       ],
       "token_refresh": {
         "reason": "refresh rejected: HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
-      }
+      },
+      "token_refreshed": true,
+      "stock_of_day": {
+        "id": 31635348,
+        "vibe": "selfie",
+        "photographer": "Nishant Das"
+      },
+      "published_media": {
+        "feed": "18442615069182842",
+        "story": "18120948269007046",
+        "reel": "17978808120155973"
+      },
+      "publish_feed": true,
+      "publish_story": true,
+      "reel_of_day": {
+        "id": 36519950,
+        "vibe": "selfie",
+        "photographer": "Anil  Sharma"
+      },
+      "publish_reel": true
     },
     "2026-11-06": {
       "trending_now": [
@@ -2160,8 +2179,8 @@
     "2026-11-17": 260
   },
   "token": {
-    "expires": "2027-01-14",
-    "days_left": 59
+    "expires": "2027-01-16",
+    "days_left": 60
   },
   "insights": {
     "days": {
@@ -2258,6 +2277,40 @@
             "saved": 0
           }
         }
+      },
+      "2026-11-05": {
+        "followers": 111,
+        "media_count": 38
+      },
+      "2026-10-01": {
+        "media": {
+          "18395940517204984": {
+            "reach": 134,
+            "likes": 3,
+            "comments": 0,
+            "saved": 0
+          }
+        }
+      },
+      "2026-09-30": {
+        "media": {
+          "18117831808767891": {
+            "reach": 17,
+            "likes": 4,
+            "comments": 0,
+            "saved": 0
+          }
+        }
+      },
+      "2026-09-29": {
+        "media": {
+          "17903253621663883": {
+            "reach": 12,
+            "likes": 2,
+            "comments": 0,
+            "saved": 0
+          }
+        }
       }
     },
     "unmeasurable": {
@@ -2273,8 +2326,9 @@
       "18089800277302833": 2,
       "18077645597740428": 2,
       "18106296518313320": 2,
-      "18112057082174438": 2,
-      "18429398455150927": 1
+      "18112057082174438": 3,
+      "18429398455150927": 2,
+      "18103163945341723": 1
     }
   }
 }

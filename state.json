@@ -2101,6 +2101,57 @@
           "message": "insights for 18429398455150927 failed — HTTP 400: Unsupported get request. Object with ID '18429398455150927' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
         }
       ]
+    },
+    "2026-11-18": {
+      "token_refreshed": true,
+      "stock_of_day": {
+        "id": 29035436,
+        "vibe": "general",
+        "photographer": "Vivek Sakhargade"
+      },
+      "published_media": {
+        "feed": "18087625697326137",
+        "story": "18111998642213071",
+        "reel": "18099063707672504"
+      },
+      "publish_feed": true,
+      "publish_story": true,
+      "reel_of_day": {
+        "id": 9328683,
+        "vibe": "general",
+        "photographer": "cottonbro studio"
+      },
+      "failures": [
+        {
+          "where": "reel",
+          "message": "library track download failed — published silent"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 17904986217372941 failed — HTTP 400: Unsupported get request. Object with ID '17904986217372941' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 17978808120155973 failed — HTTP 400: Unsupported get request. Object with ID '17978808120155973' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18429398455150927 failed — HTTP 400: Unsupported get request. Object with ID '18429398455150927' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18103163945341723 failed — HTTP 400: Unsupported get request. Object with ID '18103163945341723' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 17947197393083864 failed — HTTP 400: Unsupported get request. Object with ID '17947197393083864' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18408836107080111 failed — HTTP 400: Unsupported get request. Object with ID '18408836107080111' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        }
+      ],
+      "publish_reel": true
     }
   },
   "posted_files": [
@@ -2179,8 +2230,8 @@
     "2026-11-17": 260
   },
   "token": {
-    "expires": "2027-01-16",
-    "days_left": 60
+    "expires": "2027-01-15",
+    "days_left": 59
   },
   "insights": {
     "days": {
@@ -2311,6 +2362,10 @@
             "saved": 0
           }
         }
+      },
+      "2026-11-18": {
+        "followers": 111,
+        "media_count": 37
       }
     },
     "unmeasurable": {
@@ -2327,8 +2382,12 @@
       "18077645597740428": 2,
       "18106296518313320": 2,
       "18112057082174438": 3,
-      "18429398455150927": 2,
-      "18103163945341723": 1
+      "18429398455150927": 3,
+      "18103163945341723": 2,
+      "17904986217372941": 1,
+      "17978808120155973": 1,
+      "17947197393083864": 1,
+      "18408836107080111": 1
     }
   }
 }

@@ -3,9 +3,15 @@
 Every publishing run also reads, via the official Graph API (the token's
 existing instagram_business_basic permission — no extra scope):
   - the account's followers_count / media_count that day;
-  - reach / likes / comments / saved for each post from the last 7 days
-    that hasn't been measured yet (feed + Reels only — Stories expire and
-    their insights die with them).
+  - reach / likes / comments / saved for each REEL from the last 7 days
+    that hasn't been measured yet.
+
+Platform reality (probed live 2026-11-17, error subcode 33): feed IMAGE
+posts published through this API are NOT readable afterwards — not by id,
+not in /{uid}/media, no insights — while REELS are fully exposed. So
+per-post metrics cover Reels (the highest-reach format anyway) and
+followers cover the account; feed-image posts are never queried, so no
+calls are wasted and nothing gets mis-marked as dead.
 
 It all lands in state.json under "insights" -> "days" (capped at 35 days so
 the public file never grows without limit), and on Mondays run_daily()
@@ -17,7 +23,7 @@ Design contracts (the whole repo's style, applied to metrics):
   - Non-fatal: any API failure is a failure note, never a crash, and never
     affects the day's publish result. A broken insights feature must never
     cost a post.
-  - Idempotent: measured media ids are never re-fetched (each post is
+  - Idempotent: measured media ids are never re-fetched (each Reel is
     measured once, ~24h after publishing — metrics fetched minutes after a
     post would read ~0 forever and waste the only read we get).
   - Bounded: day rows capped (KEEP_DAYS), unmeasurable ids capped, every
@@ -32,10 +38,9 @@ import time
 from . import captions as captions_mod
 from . import instagram, state
 
-# Safe metric set for BOTH feed images and Reels (probed live 2026-11-17:
-# both IMAGE and VIDEO accept reach/likes/comments/saved on
-# graph.instagram.com). Requesting a metric a media type doesn't support
-# 400s the whole call, so the set stays small.
+# Metric set for Reels (probed live 2026-11-17: VIDEO accepts these on
+# graph.instagram.com). Requesting an unsupported metric 400s the whole
+# call, so the set stays small.
 METRICS = "reach,likes,comments,saved"
 
 KEEP_DAYS = 35          # insight day-rows kept in state.json
@@ -99,11 +104,14 @@ def collect(cfg: dict, st: dict, date_str: str) -> None:
             pm = st["days"][dstr].get("published_media")
             if not isinstance(pm, dict):
                 continue
-            for kind in ("feed", "reel"):
-                mid = pm.get(kind)
-                if (mid and str(mid) not in measured
-                        and dead.get(str(mid), 0) < ATTEMPTS_BEFORE_DEAD):
-                    pending.append((dstr, str(mid)))
+            # Reels only: feed images published through this API are
+            # unreadable afterwards (Meta limitation, subcode 33 — see the
+            # module docstring), so attempting them wastes reads and would
+            # mis-mark healthy ids as dead.
+            reel_id = pm.get("reel")
+            if (reel_id and str(reel_id) not in measured
+                    and dead.get(str(reel_id), 0) < ATTEMPTS_BEFORE_DEAD):
+                pending.append((dstr, str(reel_id)))
 
         for i, (dstr, mid) in enumerate(pending):
             if i:  # pace the reads — bursts get rate-rejected (see PACING_S)
@@ -196,9 +204,17 @@ def weekly_digest(st: dict, date: dt.date) -> dict | None:
         media = v.get("media") if isinstance(v, dict) else None
         if not isinstance(media, dict):
             continue
-        filename = st.get("days", {}).get(dstr, {}).get("media_of_day")
-        vibe = (captions_mod.vibe_from_filename(filename)
-                if filename else "general")
+        day_rec = st.get("days", {}).get(dstr, {})
+        filename = day_rec.get("media_of_day")
+        vibe = None
+        if filename:
+            vibe = captions_mod.vibe_from_filename(filename)
+        else:
+            # stock-reel days: the pinned pick carries its vibe
+            reel_pick = day_rec.get("reel_of_day")
+            if isinstance(reel_pick, dict) and reel_pick.get("vibe"):
+                vibe = str(reel_pick["vibe"])
+        vibe = vibe or "general"
         for mid, m in media.items():
             if not isinstance(m, dict):
                 continue

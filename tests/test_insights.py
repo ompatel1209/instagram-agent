@@ -97,8 +97,8 @@ def collect_stores_followers_and_media_metrics():
     st = state.load()
     yesterday = (dt.date.today() - dt.timedelta(days=1)).isoformat()
     st["days"][yesterday] = {
-        "published_media": {"feed": "M1"},
-        "media_of_day": "selfie1.jpg",
+        "published_media": {"feed": "UNREADABLE", "reel": "M1"},
+        "media_of_day": "selfie1.mp4",
     }
     calls = patch_graph(
         stats={"followers_count": 1000, "media_count": 5},
@@ -110,7 +110,7 @@ def collect_stores_followers_and_media_metrics():
     rec = st["insights"]
     assert rec["days"][date_str]["followers"] == 1000
     assert rec["days"][yesterday]["media"]["M1"]["reach"] == 500
-    assert calls["insights"] == ["M1"], calls
+    assert calls["insights"] == ["M1"], calls  # feed id never queried
     # idempotent: a second collect re-fetches nothing
     insights.collect(CFG, st, date_str)
     assert calls["insights"] == ["M1"], calls
@@ -122,7 +122,7 @@ def collect_skips_todays_own_media_and_dead_ids_need_three_strikes():
     st = fresh_state()
     today = dt.date.today().isoformat()
     yesterday = (dt.date.today() - dt.timedelta(days=1)).isoformat()
-    st["days"][today] = {"published_media": {"feed": "TODAY"}}
+    st["days"][today] = {"published_media": {"reel": "TODAY"}}
     st["days"][yesterday] = {"published_media": {"reel": "DEAD"}}
     calls = patch_graph(stats={"followers_count": 1},
                         insights_map={})  # DEAD -> 400 every time
@@ -143,7 +143,7 @@ def collect_skips_todays_own_media_and_dead_ids_need_three_strikes():
     st2 = fresh_state()
     st2["insights"] = {"unmeasurable": ["GONE"]}
     st2["days"][(dt.date.today() - dt.timedelta(days=2)).isoformat()] = {
-        "published_media": {"feed": "GONE"}}
+        "published_media": {"reel": "GONE"}}
     calls2 = patch_graph(stats={"followers_count": 1}, insights_map={})
     insights.collect(CFG, st2, dt.date.today().isoformat())
     assert "GONE" not in calls2["insights"], calls2
@@ -155,7 +155,7 @@ def a_transient_failure_does_not_write_off_a_post():
     (the 2026-11-17 live burst: six healthy posts rate-rejected in 0.7s)."""
     st = fresh_state()
     yesterday = (dt.date.today() - dt.timedelta(days=1)).isoformat()
-    st["days"][yesterday] = {"published_media": {"feed": "FLAKY"}}
+    st["days"][yesterday] = {"published_media": {"reel": "FLAKY"}}
     today = dt.date.today().isoformat()
     state_seq = {"n": 0}
     def flaky(token, mid, metrics=""):

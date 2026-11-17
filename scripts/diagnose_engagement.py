@@ -45,17 +45,31 @@ for m in media:
     print(" ", m.get("id"))
 
 # Insights metric probe: find which metric names this token/host actually
-# accepts for published media, so src/insights.py can request the right set.
-print("\ninsights metric probe (first media id):")
-if media:
-    mid = str(media[0].get("id"))
-    for metric_set in ("reach,likes,comments,saved", "views,reach",
-                       "views", "reach", "impressions", "plays"):
+# accepts, per media product type (feed image vs reel), so src/insights.py
+# can request the right set.
+print("\ninsights metric probe (per media type):")
+try:
+    typed = instagram._get(
+        f"{instagram.BASE}/{uid}/media",
+        params={"fields": "id,media_type", "limit": 20,
+                "access_token": token}, timeout=30)
+    media = typed.json().get("data", [])
+except Exception as e:
+    print(f"  typed media lookup failed: {e}")
+    media = []
+seen_types = set()
+for m in media:
+    mtype = str(m.get("media_type", ""))
+    if mtype in seen_types:
+        continue
+    seen_types.add(mtype)
+    mid = str(m.get("id"))
+    for metric_set in ("reach,likes,comments,saved", "views,reach", "views"):
         try:
             out = instagram.media_insights(token, mid, metric_set)
-            print(f"  OK   [{metric_set}] -> {out}")
+            print(f"  OK   {mtype} [{metric_set}] -> {out}")
         except Exception as e:
-            print(f"  FAIL [{metric_set}] -> {e}")
+            print(f"  FAIL {mtype} [{metric_set}] -> {e}")
 
 print("\ncomments:")
 for m in media:

@@ -2003,10 +2003,6 @@
       "failures": [
         {
           "where": "insights",
-          "message": "insights for 18496110724104480 failed — HTTP 400: Unsupported get request. Object with ID '18496110724104480' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
-        },
-        {
-          "where": "insights",
           "message": "insights for 18118045178160054 failed — HTTP 400: Unsupported get request. Object with ID '18118045178160054' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
         },
         {
@@ -2080,6 +2076,10 @@
         {
           "where": "insights",
           "message": "insights for 18106296518313320 failed — HTTP 400: Unsupported get request. Object with ID '18106296518313320' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18112057082174438 failed — HTTP 400: Unsupported get request. Object with ID '18112057082174438' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
         }
       ]
     }
@@ -2168,6 +2168,56 @@
       "2026-11-17": {
         "followers": 111,
         "media_count": 36
+      },
+      "2026-10-22": {
+        "media": {
+          "18111246677336728": {
+            "reach": 123,
+            "likes": 5,
+            "comments": 0,
+            "saved": 1
+          }
+        }
+      },
+      "2026-10-21": {
+        "media": {
+          "17894653578613603": {
+            "reach": 10,
+            "likes": 3,
+            "comments": 0,
+            "saved": 0
+          }
+        }
+      },
+      "2026-10-16": {
+        "media": {
+          "18150140506555648": {
+            "reach": 138,
+            "likes": 14,
+            "comments": 1,
+            "saved": 0
+          }
+        }
+      },
+      "2026-10-08": {
+        "media": {
+          "17991047085058234": {
+            "reach": 17,
+            "likes": 3,
+            "comments": 0,
+            "saved": 0
+          }
+        }
+      },
+      "2026-10-07": {
+        "media": {
+          "18138426883730335": {
+            "reach": 24,
+            "likes": 4,
+            "comments": 0,
+            "saved": 0
+          }
+        }
       }
     },
     "unmeasurable": {
@@ -2182,7 +2232,8 @@
       "18132138397695429": 2,
       "18089800277302833": 2,
       "18077645597740428": 2,
-      "18106296518313320": 2
+      "18106296518313320": 2,
+      "18112057082174438": 1
     }
   }
 }

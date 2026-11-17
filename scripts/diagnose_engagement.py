@@ -44,6 +44,19 @@ print(f"media ({len(media)}):")
 for m in media:
     print(" ", m.get("id"))
 
+# Insights metric probe: find which metric names this token/host actually
+# accepts for published media, so src/insights.py can request the right set.
+print("\ninsights metric probe (first media id):")
+if media:
+    mid = str(media[0].get("id"))
+    for metric_set in ("reach,likes,comments,saved", "views,reach",
+                       "views", "reach", "impressions", "plays"):
+        try:
+            out = instagram.media_insights(token, mid, metric_set)
+            print(f"  OK   [{metric_set}] -> {out}")
+        except Exception as e:
+            print(f"  FAIL [{metric_set}] -> {e}")
+
 print("\ncomments:")
 for m in media:
     mid = str(m.get("id"))

@@ -17,6 +17,11 @@ is off.
 9:00 AM IST  →  (queue empty) quote post + tip story, same as before
 3:00 PM IST  →  safety re-run: if anything failed in the morning, it retries
                 only the missing steps — never double-posts
+after every  →  growth analytics: followers_count for the day + reach /
+run            likes / comments / saved for each recent post (official
+               Graph API), and a **weekly digest every Monday** in the run
+               log: 7-day totals, follower delta, and your best-performing
+               caption vibe — so you post more of what actually reaches
 ```
 
 ## Your photos & videos (the uploads queue)

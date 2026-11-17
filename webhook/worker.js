@@ -127,8 +127,34 @@ function bankReply(bank, kind, key, seed) {
 
 // --- NIM call (ported from src/ai.py generate_reply) ---------------------------
 
+// Best-effort LLM budget for the stateless worker. The hourly Python sweep
+// enforces its cap in state.json, but a stateless Worker cannot read that
+// file — without a cap, an unauthenticated comment/DM flood (one unique
+// comment id per event) drives an unlimited number of paid NIM calls and
+// Graph reply POSTs. The counter lives per isolate: not a global guarantee,
+// but it bounds each isolate's spend, Cloudflare's own 100k req/day free
+// tier caps the rest, and the hourly sweep's state-tracked cap backstops.
+const NIM_CALLS_PER_DAY = 200;
+let nimDay = "";
+let nimCalls = 0;
+function nimBudgetOk() {
+  const today = new Date().toISOString().slice(0, 10);
+  if (today !== nimDay) { nimDay = today; nimCalls = 0; }
+  if (nimCalls >= NIM_CALLS_PER_DAY) return false;
+  nimCalls++;
+  return true;
+}
+
+// Model output is the account's public speech / DM, and the incoming text
+// is attacker-controlled (prompt injection). A reply containing a URL or
+// @mention is an injection artifact — discard it and use the bank.
+const UNSAFE_REPLY = /https?:\/\/|www\.|(^|\s)@/i;
+function replyIsSafe(text) {
+  return !UNSAFE_REPLY.test(text || "");
+}
+
 async function nimReply(personality, text, history, env) {
-  if (!env.NVIDIA_API_KEY) return null;
+  if (!env.NVIDIA_API_KEY || !nimBudgetOk()) return null;
   const messages = [
     { role: "system", content: systemPrompt(personality) },
     ...(history || []).map(([role, content]) => ({ role, content })),
@@ -163,7 +189,9 @@ async function nimReply(personality, text, history, env) {
   if (!data) return null;
   // finish_reason "length" = truncated answer — scrap it and fall back.
   if (data.choices?.[0]?.finish_reason !== "stop") return null;
-  return data.choices[0].message?.content || null;
+  const reply = data.choices[0].message?.content || null;
+  if (reply && !replyIsSafe(reply)) return null; // injection artifact
+  return reply;
 }
 
 function tidy(text, kind) {
@@ -202,6 +230,16 @@ function ownSet(env) {
 const normalize = (u) => String(u || "").replace(/^@/, "").toLowerCase();
 function ownRepliedHere(replies, own) {
   return (replies || []).some((r) => own.has(normalize(r.username)));
+}
+
+// Tokens ride in igGet URLs; a fetch failure's message may embed that URL.
+// webhook-tail.yml streams these logs into this public repo's Actions log,
+// so scrub before they reach a console.log.
+function redact(t) {
+  return String(t || "")
+    .replace(/access_token=[^&\s'"]+/gi, "access_token=[redacted]")
+    .replace(/x-access-token:[^@\s'"]+@/gi, "x-access-token:[redacted]@")
+    .replace(/\bgh[pousr]_[A-Za-z0-9]{20,}\b/g, "[redacted]");
 }
 
 // --- event handlers -----------------------------------------------------------
@@ -248,7 +286,7 @@ async function handleComment(evt, env) {
     });
     console.log("replied to comment " + cid + " (" + cat.key + ")");
   } catch (e) {
-    console.log("comment reply failed: " + e.message); // sweep catches it later
+    console.log("comment reply failed: " + redact(e.message)); // sweep catches it later
   }
 }
 
@@ -340,7 +378,7 @@ async function handleMessage(evt, env) {
     });
     console.log("replied to DM from " + senderId);
   } catch (e) {
-    console.log("DM reply failed: " + e.message); // sweep catches it later
+    console.log("DM reply failed: " + redact(e.message)); // sweep catches it later
   }
 }
 
@@ -469,7 +507,7 @@ export default {
           if (evt.kind === "comment") await handleComment(evt.value, env);
           else if (evt.kind === "message") await handleMessage(evt.value, env);
         } catch (e) {
-          console.log("handler error: " + (e && e.message));
+          console.log("handler error: " + redact(e && e.message));
         }
       }
     })());

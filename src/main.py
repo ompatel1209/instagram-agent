@@ -29,7 +29,7 @@ import time
 import requests as _requests
 
 from . import alerts, captions as captions_mod
-from . import content, festivals, instagram, music, pexels, reel, render, state, token, trending, uploads
+from . import content, festivals, insights, instagram, music, pexels, reel, render, state, token, trending, uploads
 from .config import PREVIEW_DIR, ROOT, load_config, media_url, reel_url as reel_media_url
 
 
@@ -477,6 +477,12 @@ def run() -> int:
     try:
         return _run_publish(cfg, args, date, date_str)
     finally:
+        # Insights + Monday digest: only on a real run (never --prepare) and
+        # only with a token — metrics must never make an API call on a dry
+        # path, and must never mask the real exit code (run_daily never
+        # raises). Runs after publishing so today's ids exist in state.
+        insights.run_daily(cfg, date_str,
+                           enabled=not args.prepare and token_configured)
         alerts.sync(cfg, date_str, enabled=not args.prepare,
                     token_configured=token_configured)
 

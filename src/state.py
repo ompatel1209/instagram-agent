@@ -5,6 +5,7 @@ The workflow commits this file back to main after every run so a re-run
 never double-posts.
 """
 import json
+import os
 
 from .config import STATE_PATH, redact
 
@@ -17,9 +18,19 @@ def load() -> dict:
 
 
 def save(state: dict) -> None:
-    with open(STATE_PATH, "w", encoding="utf-8") as f:
+    """Atomic write: the three scheduled workflows push state.json to main
+    with `if: always()` — even after a timeout. A runner kill between the
+    truncating open() and the end of json.dump would leave a corrupt file
+    that push_state.sh then commits, wiping the idempotency ledger and
+    letting the safety re-run double-post. Temp file + os.replace keeps
+    main's ledger intact no matter when the process dies."""
+    tmp = STATE_PATH.with_name(STATE_PATH.name + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2, ensure_ascii=False)
         f.write("\n")
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, STATE_PATH)
 
 
 def day(state: dict, date_str: str) -> dict:

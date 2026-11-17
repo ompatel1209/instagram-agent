@@ -192,6 +192,44 @@ def token_info(token: str) -> dict:
 # --- Engagement: comments + DMs ------------------------------------------------
 
 
+def media_insights(token: str, media_id: str,
+                   metrics: str = "reach,likes,comments,saved") -> dict:
+    """GET /{media-id}/insights — per-metric totals for a published post.
+
+    Requested metrics must be valid for the media type or the whole call
+    400s; reach/likes/comments/saved are valid for both feed images and
+    Reels, so callers keep to that safe set. Returns {metric: value}.
+    """
+    r = _get(
+        f"{BASE}/{media_id}/insights",
+        params={"metric": metrics, "access_token": token},
+        timeout=TIMEOUT,
+    )
+    data = _check(r)
+    out: dict = {}
+    for row in data.get("data", []):
+        name = row.get("name")
+        values = row.get("values") or []
+        if name and values and isinstance(values[0], dict):
+            out[name] = values[0].get("value")
+    return out
+
+
+def get_account_stats(token: str, ig_user_id: str) -> dict:
+    """GET /{ig-user-id}?fields=followers_count,media_count — growth numbers.
+
+    Works with instagram_business_basic (the same permission publishing
+    uses); no extra scope needed.
+    """
+    r = _get(
+        f"{BASE}/{ig_user_id}",
+        params={"fields": "followers_count,media_count",
+                "access_token": token},
+        timeout=TIMEOUT,
+    )
+    return _check(r)
+
+
 def list_media(token: str, ig_user_id: str, limit: int = 50) -> list[dict]:
     """The account's published media (posts, reels…): GET /{ig-user-id}/media.
 

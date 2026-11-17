@@ -21,6 +21,8 @@ from src import ai, engagement
 
 ROOT = pathlib.Path(__file__).resolve().parent
 PORT = 8787
+MAX_BODY = 1 << 20  # 1 MiB — no need for more in a reply playground
+ALLOWED_HOSTS = {f"127.0.0.1:{PORT}", f"localhost:{PORT}"}
 
 
 def load_local(key_default: str) -> tuple[str, str]:
@@ -63,9 +65,21 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/chat":
             self._send(404, {"error": "not found"})
             return
+        # Only the local machine talks to this server — never a rebound or
+        # cross-origin web page (a foreign Host means a DNS-rebinding page
+        # reached us; reject it before it can spend the NIM key).
+        if (self.headers.get("Host", "").strip() not in ALLOWED_HOSTS):
+            self._send(403, {"error": "forbidden host"})
+            return
         try:
-            body = json.loads(self.rfile.read(int(
-                self.headers.get("Content-Length", 0))) or b"{}")
+            length = int(self.headers.get("Content-Length", 0))
+        except ValueError:
+            length = 0
+        if length > MAX_BODY:
+            self._send(413, {"error": "body too large"})
+            return
+        try:
+            body = json.loads(self.rfile.read(length) or b"{}")
         except (ValueError, json.JSONDecodeError):
             self._send(400, {"error": "body must be JSON"})
             return

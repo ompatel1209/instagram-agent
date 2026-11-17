@@ -42,5 +42,5 @@ jobs:
           secs="${SECONDS_TO_TAIL:-300}"
           if [ "$secs" -gt 600 ]; then secs=600; fi
           echo "tailing for ${secs}s — send a DM/comment now"
-          timeout "$secs" npx --yes wrangler@latest tail --format pretty || true
+          timeout "$secs" npx --yes wrangler@4 tail --format pretty || true
           echo "tail finished"

@@ -17,11 +17,19 @@ IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
 # Tokens ride in Graph GET query strings; a requests exception embeds that
 # URL, and state.json is committed to a public repo. Scrub before storing.
 _TOKEN_PARAM = re.compile(r"(access_token=)[^&\s'\"]+", re.IGNORECASE)
+# The push scripts (scripts/push_file.sh, push_media.sh, ingest_uploads.sh)
+# embed MEDIA_PUSH_TOKEN in remote URLs as x-access-token:<PAT>@github.com —
+# a git/tool error echoing such a URL must not reach state.json either.
+_URL_CRED = re.compile(r"(x-access-token:)[^@\s'\"]+(@)", re.IGNORECASE)
+# Raw PAT / fine-grained PAT bodies in any other context.
+_RAW_PAT = re.compile(r"\b(gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b")
 
 
 def redact(text: object) -> str:
     """Strip access tokens from error text bound for state.json or a log."""
-    return _TOKEN_PARAM.sub(r"\1[redacted]", str(text))
+    out = _TOKEN_PARAM.sub(r"\1[redacted]", str(text))
+    out = _URL_CRED.sub(r"\1[redacted]\2", out)
+    return _RAW_PAT.sub("[redacted]", out)
 
 
 def ist_today() -> dt.date:

@@ -1981,7 +1981,8 @@
       "token_refreshed": true,
       "published_media": {
         "feed": "17913489834581878",
-        "story": "18157934902523303"
+        "story": "18157934902523303",
+        "reel": "17904986217372941"
       },
       "publish_feed": true,
       "publish_story": true,
@@ -1992,7 +1993,39 @@
         "dailycontent",
         "mirrorselfie"
       ],
-      "trending_source": "ai"
+      "trending_source": "ai",
+      "reel_of_day": {
+        "id": 20404736,
+        "vibe": "selflove",
+        "photographer": "Monstera Production"
+      },
+      "publish_reel": true,
+      "failures": [
+        {
+          "where": "insights",
+          "message": "insights for 18487316491118396 failed — HTTP 400: Unsupported get request. Object with ID '18487316491118396' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18131110826512668 failed — HTTP 400: Unsupported get request. Object with ID '18131110826512668' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 17898325125682367 failed — HTTP 400: Unsupported get request. Object with ID '17898325125682367' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18002618691002160 failed — HTTP 400: Unsupported get request. Object with ID '18002618691002160' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18496110724104480 failed — HTTP 400: Unsupported get request. Object with ID '18496110724104480' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18118045178160054 failed — HTTP 400: Unsupported get request. Object with ID '18118045178160054' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        }
+      ]
     }
   },
   "posted_files": [
@@ -2073,5 +2106,21 @@
   "token": {
     "expires": "2027-01-14",
     "days_left": 59
+  },
+  "insights": {
+    "days": {
+      "2026-11-17": {
+        "followers": 111,
+        "media_count": 36
+      }
+    },
+    "unmeasurable": [
+      "18487316491118396",
+      "18131110826512668",
+      "17898325125682367",
+      "18002618691002160",
+      "18496110724104480",
+      "18118045178160054"
+    ]
   }
 }

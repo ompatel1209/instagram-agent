@@ -27,18 +27,24 @@ Run:  python3 -m src.insights   (manual one-shot; the publishing run
       calls run_daily() automatically)
 """
 import datetime as dt
+import time
 
 from . import captions as captions_mod
 from . import instagram, state
 
-# Safe metric set for BOTH feed images and Reels. Requesting a metric a
-# media type doesn't support 400s the whole call, so the set stays small.
+# Safe metric set for BOTH feed images and Reels (probed live 2026-11-17:
+# both IMAGE and VIDEO accept reach/likes/comments/saved on
+# graph.instagram.com). Requesting a metric a media type doesn't support
+# 400s the whole call, so the set stays small.
 METRICS = "reach,likes,comments,saved"
 
 KEEP_DAYS = 35          # insight day-rows kept in state.json
 RECENT_DAYS = 7         # how far back unmeasured posts are still fetched
 MAX_FETCH_PER_RUN = 6   # bound one run's insight reads (first runs backfill)
-UNMEASURABLE_CAP = 50   # dead/expired ids we must not retry forever
+PACING_S = 1.5          # gap between insight reads — a 6-call burst right
+                        # after publishing got every call rate-rejected once
+ATTEMPTS_BEFORE_DEAD = 3  # failed reads before an id stops being retried
+UNMEASURABLE_CAP = 50   # dead ids we must not retry forever
 
 
 def _log(msg: str) -> None:
@@ -77,8 +83,15 @@ def collect(cfg: dict, st: dict, date_str: str) -> None:
         # --- unmeasured posts from the last RECENT_DAYS --------------------
         # Today's own ids are skipped: metrics read within minutes of
         # publishing are ~0 forever, and the id would never be re-fetched.
+        # "unmeasurable" maps media id -> failed-read count (older versions
+        # stored a flat list — coerced here): an id stops being retried only
+        # after ATTEMPTS_BEFORE_DEAD failures, so a transient rate-limit
+        # burst never writes off a healthy post.
+        raw_dead = rec.get("unmeasurable")
+        dead = dict(raw_dead) if isinstance(raw_dead, dict) else (
+            {str(k): ATTEMPTS_BEFORE_DEAD for k in raw_dead}
+            if isinstance(raw_dead, list) else {})
         measured = _measured_ids(days)
-        dead = rec.setdefault("unmeasurable", [])
         pending: list[tuple[str, str]] = []
         for dstr in sorted(st.get("days", {}).keys(), reverse=True):
             if dstr >= date_str or len(pending) >= MAX_FETCH_PER_RUN:
@@ -88,27 +101,48 @@ def collect(cfg: dict, st: dict, date_str: str) -> None:
                 continue
             for kind in ("feed", "reel"):
                 mid = pm.get(kind)
-                if mid and str(mid) not in measured and str(mid) not in dead:
+                if (mid and str(mid) not in measured
+                        and dead.get(str(mid), 0) < ATTEMPTS_BEFORE_DEAD):
                     pending.append((dstr, str(mid)))
 
-        for dstr, mid in pending:
+        for i, (dstr, mid) in enumerate(pending):
+            if i:  # pace the reads — bursts get rate-rejected (see PACING_S)
+                time.sleep(PACING_S)
             try:
                 m = instagram.media_insights(token, mid, METRICS)
             except instagram.InstagramError as e:
                 # A dead id (post deleted, story expired) must not produce
-                # a failure note every run for the rest of its life.
-                _log(f"insights: {mid} not measurable — {e}")
+                # a failure note every run for the rest of its life — but a
+                # single transient failure must not write it off either.
+                attempts = dead.get(mid, 0) + 1
+                dead[mid] = attempts
+                if attempts >= ATTEMPTS_BEFORE_DEAD:
+                    _log(f"insights: {mid} not measurable after "
+                         f"{attempts} attempts — giving up ({e})")
+                else:
+                    _log(f"insights: {mid} read failed (attempt "
+                         f"{attempts}/{ATTEMPTS_BEFORE_DEAD}) — {e}")
                 state.note_failure(st, date_str, "insights",
                                    f"insights for {mid} failed — {e}")
-                dead.append(mid)
-                if len(dead) > UNMEASURABLE_CAP:
-                    del dead[:-UNMEASURABLE_CAP]
                 changed = True
                 continue
+            dead.pop(mid, None)
             days.setdefault(dstr, {}).setdefault("media", {})[mid] = m
             changed = True
             _log(f"insights: {dstr} {mid} — "
                  + ", ".join(f"{k}={v}" for k, v in sorted(m.items())))
+
+        if rec.get("unmeasurable") != dead or dead:
+            # keep the capped id->attempts map only when non-empty
+            if dead:
+                if len(dead) > UNMEASURABLE_CAP:
+                    for k in sorted(dead, key=dead.get)[:-UNMEASURABLE_CAP]:
+                        dead.pop(k, None)
+                rec["unmeasurable"] = dead
+                changed = True
+            elif "unmeasurable" in rec:
+                del rec["unmeasurable"]
+                changed = True
 
         # --- retention -----------------------------------------------------
         if len(days) > KEEP_DAYS:

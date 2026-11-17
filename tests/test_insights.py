@@ -46,6 +46,8 @@ sys.modules["requests"] = _requests
 
 from src import insights, instagram, state  # noqa: E402  (stubs must load first)
 
+insights.time.sleep = lambda s: None  # no pacing delay in tests
+
 # ------------------------------------------------------------- scratch state
 _scratch = pathlib.Path(tempfile.mkdtemp(prefix="ig-insights-test-"))
 state.STATE_PATH = _scratch / "state.json"
@@ -116,22 +118,58 @@ def collect_stores_followers_and_media_metrics():
 
 
 @test
-def collect_skips_todays_own_media_and_marks_dead_ids_once():
+def collect_skips_todays_own_media_and_dead_ids_need_three_strikes():
     st = fresh_state()
     today = dt.date.today().isoformat()
     yesterday = (dt.date.today() - dt.timedelta(days=1)).isoformat()
     st["days"][today] = {"published_media": {"feed": "TODAY"}}
     st["days"][yesterday] = {"published_media": {"reel": "DEAD"}}
     calls = patch_graph(stats={"followers_count": 1},
-                        insights_map={})  # DEAD -> 400
+                        insights_map={})  # DEAD -> 400 every time
+    # today's own post is never attempted; DEAD is retried across runs
+    # until it has failed ATTEMPTS_BEFORE_DEAD times, then given up on
     insights.collect(CFG, st, today)
-    assert "TODAY" not in calls["insights"], calls  # today skipped
+    assert "TODAY" not in calls["insights"], calls
     assert calls["insights"] == ["DEAD"], calls
-    assert "DEAD" in st["insights"]["unmeasurable"]
-    # second run: dead id NOT retried
-    calls2 = patch_graph(stats={"followers_count": 1}, insights_map={})
+    assert st["insights"]["unmeasurable"]["DEAD"] == 1
     insights.collect(CFG, st, today)
-    assert calls2["insights"] == [], calls2
+    insights.collect(CFG, st, today)
+    assert calls["insights"].count("DEAD") == insights.ATTEMPTS_BEFORE_DEAD
+    assert st["insights"]["unmeasurable"]["DEAD"] == 3
+    # fourth run: dead id NOT retried anymore
+    insights.collect(CFG, st, today)
+    assert calls["insights"].count("DEAD") == insights.ATTEMPTS_BEFORE_DEAD
+    # legacy flat-list format coerced to already-dead
+    st2 = fresh_state()
+    st2["insights"] = {"unmeasurable": ["GONE"]}
+    st2["days"][(dt.date.today() - dt.timedelta(days=2)).isoformat()] = {
+        "published_media": {"feed": "GONE"}}
+    calls2 = patch_graph(stats={"followers_count": 1}, insights_map={})
+    insights.collect(CFG, st2, dt.date.today().isoformat())
+    assert "GONE" not in calls2["insights"], calls2
+
+
+@test
+def a_transient_failure_does_not_write_off_a_post():
+    """First read fails, second succeeds -> the post still gets measured
+    (the 2026-11-17 live burst: six healthy posts rate-rejected in 0.7s)."""
+    st = fresh_state()
+    yesterday = (dt.date.today() - dt.timedelta(days=1)).isoformat()
+    st["days"][yesterday] = {"published_media": {"feed": "FLAKY"}}
+    today = dt.date.today().isoformat()
+    state_seq = {"n": 0}
+    def flaky(token, mid, metrics=""):
+        state_seq["n"] += 1
+        if state_seq["n"] == 1:
+            raise instagram.InstagramError("HTTP 400: transient")
+        return {"reach": 21, "likes": 1, "comments": 0, "saved": 0}
+    instagram.get_account_stats = lambda *a, **k: {"followers_count": 7}
+    instagram.media_insights = flaky
+    insights.collect(CFG, st, today)
+    assert "media" not in st["insights"]["days"].get(yesterday, {})
+    insights.collect(CFG, st, today)
+    assert st["insights"]["days"][yesterday]["media"]["FLAKY"]["reach"] == 21
+    assert "unmeasurable" not in st["insights"], st["insights"]
 
 
 @test

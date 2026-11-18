@@ -2153,6 +2153,30 @@
         {
           "where": "refresh",
           "message": "uploads-queue lookup failed — depth unknown"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 17904986217372941 failed — HTTP 400: Unsupported get request. Object with ID '17904986217372941' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 17978808120155973 failed — HTTP 400: Unsupported get request. Object with ID '17978808120155973' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18103163945341723 failed — HTTP 400: Unsupported get request. Object with ID '18103163945341723' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 17947197393083864 failed — HTTP 400: Unsupported get request. Object with ID '17947197393083864' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18408836107080111 failed — HTTP 400: Unsupported get request. Object with ID '18408836107080111' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18028649702847779 failed — HTTP 400: Unsupported get request. Object with ID '18028649702847779' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
         }
       ],
       "publish_reel": true,
@@ -2377,7 +2401,7 @@
       },
       "2026-11-18": {
         "followers": 111,
-        "media_count": 37
+        "media_count": 35
       }
     },
     "unmeasurable": {
@@ -2395,11 +2419,12 @@
       "18106296518313320": 2,
       "18112057082174438": 3,
       "18429398455150927": 3,
-      "18103163945341723": 2,
-      "17904986217372941": 1,
-      "17978808120155973": 1,
-      "17947197393083864": 1,
-      "18408836107080111": 1
+      "18103163945341723": 3,
+      "17904986217372941": 2,
+      "17978808120155973": 2,
+      "17947197393083864": 2,
+      "18408836107080111": 2,
+      "18028649702847779": 1
     }
   }
 }

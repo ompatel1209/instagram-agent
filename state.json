@@ -2177,6 +2177,30 @@
         {
           "where": "insights",
           "message": "insights for 18028649702847779 failed — HTTP 400: Unsupported get request. Object with ID '18028649702847779' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 17904986217372941 failed — HTTP 400: Unsupported get request. Object with ID '17904986217372941' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 17978808120155973 failed — HTTP 400: Unsupported get request. Object with ID '17978808120155973' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 17947197393083864 failed — HTTP 400: Unsupported get request. Object with ID '17947197393083864' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18408836107080111 failed — HTTP 400: Unsupported get request. Object with ID '18408836107080111' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18028649702847779 failed — HTTP 400: Unsupported get request. Object with ID '18028649702847779' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18032864921659156 failed — HTTP 400: Unsupported get request. Object with ID '18032864921659156' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
         }
       ],
       "publish_reel": true,
@@ -2400,7 +2424,7 @@
         }
       },
       "2026-11-18": {
-        "followers": 111,
+        "followers": 110,
         "media_count": 35
       }
     },
@@ -2420,11 +2444,12 @@
       "18112057082174438": 3,
       "18429398455150927": 3,
       "18103163945341723": 3,
-      "17904986217372941": 2,
-      "17978808120155973": 2,
-      "17947197393083864": 2,
-      "18408836107080111": 2,
-      "18028649702847779": 1
+      "17904986217372941": 3,
+      "17978808120155973": 3,
+      "17947197393083864": 3,
+      "18408836107080111": 3,
+      "18028649702847779": 2,
+      "18032864921659156": 1
     }
   }
 }

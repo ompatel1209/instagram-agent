@@ -2218,6 +2218,34 @@
         {
           "where": "refresh",
           "message": "uploads-queue lookup failed — depth unknown"
+        },
+        {
+          "where": "reel",
+          "message": "library track download failed — published silent"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18099063707672504 failed — HTTP 400: Unsupported get request. Object with ID '18099063707672504' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18028649702847779 failed — HTTP 400: Unsupported get request. Object with ID '18028649702847779' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18032864921659156 failed — HTTP 400: Unsupported get request. Object with ID '18032864921659156' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 17906791077507438 failed — HTTP 400: Unsupported get request. Object with ID '17906791077507438' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18071007428721486 failed — HTTP 400: Unsupported get request. Object with ID '18071007428721486' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18618027775052203 failed — HTTP 400: Unsupported get request. Object with ID '18618027775052203' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
         }
       ],
       "trending_now": [
@@ -2227,7 +2255,26 @@
         "fearless",
         "softgirlaesthetic"
       ],
-      "trending_source": "ai"
+      "trending_source": "ai",
+      "token_refreshed": true,
+      "stock_of_day": {
+        "id": 31521632,
+        "vibe": "selfie",
+        "photographer": "Ravibabu nannam"
+      },
+      "published_media": {
+        "feed": "18129266800975849",
+        "story": "18460729873121988",
+        "reel": "17908563219600969"
+      },
+      "publish_feed": true,
+      "publish_story": true,
+      "reel_of_day": {
+        "id": 8849055,
+        "vibe": "selfie",
+        "photographer": "Lara Jameson"
+      },
+      "publish_reel": true
     }
   },
   "posted_files": [
@@ -2306,8 +2353,8 @@
     "2026-11-19": 266
   },
   "token": {
-    "expires": "2027-01-15",
-    "days_left": 59
+    "expires": "2027-01-18",
+    "days_left": 60
   },
   "insights": {
     "days": {
@@ -2442,6 +2489,10 @@
       "2026-11-18": {
         "followers": 110,
         "media_count": 35
+      },
+      "2026-11-19": {
+        "followers": 110,
+        "media_count": 37
       }
     },
     "unmeasurable": {
@@ -2464,8 +2515,12 @@
       "17978808120155973": 3,
       "17947197393083864": 3,
       "18408836107080111": 3,
-      "18028649702847779": 2,
-      "18032864921659156": 1
+      "18028649702847779": 3,
+      "18032864921659156": 2,
+      "18099063707672504": 1,
+      "17906791077507438": 1,
+      "18071007428721486": 1,
+      "18618027775052203": 1
     }
   }
 }

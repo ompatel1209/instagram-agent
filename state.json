@@ -2212,6 +2212,22 @@
         "attitudequeen"
       ],
       "trending_source": "ai"
+    },
+    "2026-11-19": {
+      "failures": [
+        {
+          "where": "refresh",
+          "message": "uploads-queue lookup failed — depth unknown"
+        }
+      ],
+      "trending_now": [
+        "golddrop",
+        "cinematicvibes",
+        "memorylane",
+        "fearless",
+        "softgirlaesthetic"
+      ],
+      "trending_source": "ai"
     }
   },
   "posted_files": [
@@ -2260,13 +2276,13 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-11-18",
+    "date": "2026-11-19",
     "trending_now": [
-      "reminder",
-      "motivation",
-      "selfcare",
-      "selfiegirls",
-      "attitudequeen"
+      "golddrop",
+      "cinematicvibes",
+      "memorylane",
+      "fearless",
+      "softgirlaesthetic"
     ],
     "trending_source": "ai",
     "queue_remaining": null,
@@ -2274,20 +2290,20 @@
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "candle-flame-d",
-      "mood": "candle"
+      "id": "chill-nature",
+      "mood": "chill"
     },
     "token_days_left": 59,
     "festival": null
   },
   "ai_tokens_spent": {
-    "2026-11-12": 270,
     "2026-11-13": 252,
     "2026-11-14": 273,
     "2026-11-15": 251,
     "2026-11-16": 255,
     "2026-11-17": 260,
-    "2026-11-18": 271
+    "2026-11-18": 271,
+    "2026-11-19": 266
   },
   "token": {
     "expires": "2027-01-15",

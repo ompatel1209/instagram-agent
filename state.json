@@ -2319,9 +2319,21 @@
         {
           "where": "insights",
           "message": "insights for 18618027775052203 failed — HTTP 400: Unsupported get request. Object with ID '18618027775052203' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "refresh",
+          "message": "uploads-queue lookup failed — depth unknown"
         }
       ],
-      "publish_reel": true
+      "publish_reel": true,
+      "trending_now": [
+        "dailyupdate",
+        "lifestyle",
+        "mindset",
+        "pinklover",
+        "ootdinspo"
+      ],
+      "trending_source": "ai"
     }
   },
   "posted_files": [
@@ -2370,13 +2382,13 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-11-19",
+    "date": "2026-11-20",
     "trending_now": [
-      "golddrop",
-      "cinematicvibes",
-      "memorylane",
-      "fearless",
-      "softgirlaesthetic"
+      "dailyupdate",
+      "lifestyle",
+      "mindset",
+      "pinklover",
+      "ootdinspo"
     ],
     "trending_source": "ai",
     "queue_remaining": null,
@@ -2384,20 +2396,20 @@
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "chill-nature",
-      "mood": "chill"
+      "id": "coffee-aesthetic",
+      "mood": "coffee"
     },
     "token_days_left": 59,
     "festival": null
   },
   "ai_tokens_spent": {
-    "2026-11-13": 252,
     "2026-11-14": 273,
     "2026-11-15": 251,
     "2026-11-16": 255,
     "2026-11-17": 260,
     "2026-11-18": 271,
-    "2026-11-19": 266
+    "2026-11-19": 266,
+    "2026-11-20": 265
   },
   "token": {
     "expires": "2027-01-17",

@@ -2359,6 +2359,22 @@
         {
           "where": "insights",
           "message": "insights for 18367147831212641 failed — HTTP 400: Unsupported get request. Object with ID '18367147831212641' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "account stats failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18123002017869959 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18104882834264326 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18367147831212641 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
         }
       ],
       "publish_reel": true,
@@ -2628,9 +2644,9 @@
       "17906791077507438": 3,
       "18071007428721486": 3,
       "18618027775052203": 3,
-      "18123002017869959": 2,
-      "18104882834264326": 2,
-      "18367147831212641": 1
+      "18123002017869959": 3,
+      "18104882834264326": 3,
+      "18367147831212641": 2
     }
   }
 }

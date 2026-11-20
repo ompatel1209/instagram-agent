@@ -2386,6 +2386,38 @@
         "ootdinspo"
       ],
       "trending_source": "ai"
+    },
+    "2026-11-21": {
+      "failures": [
+        {
+          "where": "engagement",
+          "message": "live media lookup failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons.; sweeping recorded ids"
+        },
+        {
+          "where": "engagement",
+          "message": "list comments on 17945072472389483 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "engagement",
+          "message": "list comments on 18015435653766554 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "engagement",
+          "message": "list comments on 18129266800975849 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "engagement",
+          "message": "list comments on 17908563219600969 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "engagement",
+          "message": "list comments on 18087625697326137 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "engagement",
+          "message": "list conversations failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        }
+      ]
     }
   },
   "posted_files": [

@@ -2323,6 +2323,30 @@
         {
           "where": "refresh",
           "message": "uploads-queue lookup failed — depth unknown"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18099063707672504 failed — HTTP 400: Unsupported get request. Object with ID '18099063707672504' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 17906791077507438 failed — HTTP 400: Unsupported get request. Object with ID '17906791077507438' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18071007428721486 failed — HTTP 400: Unsupported get request. Object with ID '18071007428721486' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18618027775052203 failed — HTTP 400: Unsupported get request. Object with ID '18618027775052203' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18123002017869959 failed — HTTP 400: Unsupported get request. Object with ID '18123002017869959' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18104882834264326 failed — HTTP 400: Unsupported get request. Object with ID '18104882834264326' does not exist, cannot be loaded due to missing permissions, or does not support this operation"
         }
       ],
       "publish_reel": true,
@@ -2588,10 +2612,12 @@
       "18408836107080111": 3,
       "18028649702847779": 3,
       "18032864921659156": 3,
-      "18099063707672504": 2,
-      "17906791077507438": 2,
-      "18071007428721486": 2,
-      "18618027775052203": 2
+      "18099063707672504": 3,
+      "17906791077507438": 3,
+      "18071007428721486": 3,
+      "18618027775052203": 3,
+      "18123002017869959": 1,
+      "18104882834264326": 1
     }
   }
 }

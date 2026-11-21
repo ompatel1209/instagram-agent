@@ -2391,10 +2391,6 @@
       "failures": [
         {
           "where": "engagement",
-          "message": "list comments on 17945072472389483 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
-        },
-        {
-          "where": "engagement",
           "message": "list comments on 18015435653766554 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
         },
         {
@@ -2468,8 +2464,20 @@
         {
           "where": "engagement",
           "message": "list conversations failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "refresh",
+          "message": "uploads-queue lookup failed — depth unknown"
         }
-      ]
+      ],
+      "trending_now": [
+        "mood",
+        "vibes",
+        "forecast",
+        "indianoutfit",
+        "beachvibes"
+      ],
+      "trending_source": "ai"
     }
   },
   "posted_files": [
@@ -2518,13 +2526,13 @@
     "last_run": "0 comment replies, 0 DM replies"
   },
   "refresh": {
-    "date": "2026-11-20",
+    "date": "2026-11-21",
     "trending_now": [
-      "dailyupdate",
-      "lifestyle",
-      "mindset",
-      "pinklover",
-      "ootdinspo"
+      "mood",
+      "vibes",
+      "forecast",
+      "indianoutfit",
+      "beachvibes"
     ],
     "trending_source": "ai",
     "queue_remaining": null,
@@ -2532,20 +2540,20 @@
     "vibe": null,
     "is_video": null,
     "music_track": {
-      "id": "coffee-aesthetic",
+      "id": "coffee-aesthetic-b",
       "mood": "coffee"
     },
     "token_days_left": 59,
     "festival": null
   },
   "ai_tokens_spent": {
-    "2026-11-14": 273,
     "2026-11-15": 251,
     "2026-11-16": 255,
     "2026-11-17": 260,
     "2026-11-18": 271,
     "2026-11-19": 266,
-    "2026-11-20": 265
+    "2026-11-20": 265,
+    "2026-11-21": 265
   },
   "token": {
     "expires": "2027-01-17",

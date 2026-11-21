@@ -2391,26 +2391,6 @@
       "failures": [
         {
           "where": "engagement",
-          "message": "list comments on 18015435653766554 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
-        },
-        {
-          "where": "engagement",
-          "message": "list comments on 18129266800975849 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
-        },
-        {
-          "where": "engagement",
-          "message": "list comments on 17908563219600969 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
-        },
-        {
-          "where": "engagement",
-          "message": "list comments on 18087625697326137 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
-        },
-        {
-          "where": "engagement",
-          "message": "list conversations failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
-        },
-        {
-          "where": "engagement",
           "message": "live media lookup failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons.; sweeping recorded ids"
         },
         {
@@ -2468,6 +2448,26 @@
         {
           "where": "refresh",
           "message": "uploads-queue lookup failed — depth unknown"
+        },
+        {
+          "where": "feed",
+          "message": "HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "story",
+          "message": "HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "insights",
+          "message": "account stats failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18015435653766554 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+        },
+        {
+          "where": "insights",
+          "message": "insights for 18367147831212641 failed — HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
         }
       ],
       "trending_now": [
@@ -2477,7 +2477,15 @@
         "indianoutfit",
         "beachvibes"
       ],
-      "trending_source": "ai"
+      "trending_source": "ai",
+      "token_refresh": {
+        "reason": "refresh rejected: HTTP 400: Error validating access token: The session has been invalidated because the user changed their password or Facebook has changed the session for security reasons."
+      },
+      "stock_of_day": {
+        "id": 27528815,
+        "vibe": "cute",
+        "photographer": "Annika Rose"
+      }
     }
   },
   "posted_files": [
@@ -2708,7 +2716,8 @@
       "2026-11-20": {
         "followers": 110,
         "media_count": 38
-      }
+      },
+      "2026-11-21": {}
     },
     "unmeasurable": {
       "18487316491118396": 3,
@@ -2738,7 +2747,8 @@
       "18618027775052203": 3,
       "18123002017869959": 3,
       "18104882834264326": 3,
-      "18367147831212641": 2
+      "18367147831212641": 3,
+      "18015435653766554": 1
     }
   }
 }
